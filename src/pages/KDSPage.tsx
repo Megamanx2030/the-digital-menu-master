@@ -95,7 +95,7 @@ const KDSPage = () => {
     return 'bg-kds-red/20';
   };
 
-  const updateStatus = async (pedidoId: string, newStatus: string) => {
+  const updateStatus = async (pedidoId: string, newStatus: 'novo' | 'preparando' | 'pronto' | 'entregue') => {
     await supabase.from('pedidos').update({ status: newStatus }).eq('id', pedidoId);
   };
 
