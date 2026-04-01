@@ -14,7 +14,218 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categorias: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          ordem: number
+          restaurante_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          ordem?: number
+          restaurante_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          ordem?: number
+          restaurante_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorias_restaurante_id_fkey"
+            columns: ["restaurante_id"]
+            isOneToOne: false
+            referencedRelation: "restaurantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itens_pedido: {
+        Row: {
+          created_at: string
+          id: string
+          observacoes: string | null
+          pedido_id: string
+          preco_unitario: number
+          produto_id: string
+          quantidade: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          observacoes?: string | null
+          pedido_id: string
+          preco_unitario: number
+          produto_id: string
+          quantidade?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          observacoes?: string | null
+          pedido_id?: string
+          preco_unitario?: number
+          produto_id?: string
+          quantidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_pedido_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itens_pedido_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mesas: {
+        Row: {
+          created_at: string
+          id: string
+          numero: number
+          qr_code_url: string | null
+          restaurante_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          numero: number
+          qr_code_url?: string | null
+          restaurante_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          numero?: number
+          qr_code_url?: string | null
+          restaurante_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mesas_restaurante_id_fkey"
+            columns: ["restaurante_id"]
+            isOneToOne: false
+            referencedRelation: "restaurantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedidos: {
+        Row: {
+          created_at: string
+          id: string
+          mesa_id: string
+          numero_pedido: number
+          observacoes: string | null
+          status: Database["public"]["Enums"]["status_pedido"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mesa_id: string
+          numero_pedido?: number
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["status_pedido"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mesa_id?: string
+          numero_pedido?: number
+          observacoes?: string | null
+          status?: Database["public"]["Enums"]["status_pedido"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_mesa_id_fkey"
+            columns: ["mesa_id"]
+            isOneToOne: false
+            referencedRelation: "mesas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produtos: {
+        Row: {
+          categoria_id: string
+          created_at: string
+          descricao: string | null
+          disponivel: boolean
+          id: string
+          imagem_url: string | null
+          nome: string
+          preco: number
+        }
+        Insert: {
+          categoria_id: string
+          created_at?: string
+          descricao?: string | null
+          disponivel?: boolean
+          id?: string
+          imagem_url?: string | null
+          nome: string
+          preco: number
+        }
+        Update: {
+          categoria_id?: string
+          created_at?: string
+          descricao?: string | null
+          disponivel?: boolean
+          id?: string
+          imagem_url?: string | null
+          nome?: string
+          preco?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produtos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurantes: {
+        Row: {
+          created_at: string
+          endereco: string | null
+          id: string
+          nome: string
+          telefone: string | null
+        }
+        Insert: {
+          created_at?: string
+          endereco?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+        }
+        Update: {
+          created_at?: string
+          endereco?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +234,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      status_pedido: "novo" | "preparando" | "pronto" | "entregue"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +361,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      status_pedido: ["novo", "preparando", "pronto", "entregue"],
+    },
   },
 } as const
