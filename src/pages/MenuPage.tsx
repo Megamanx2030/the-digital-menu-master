@@ -52,7 +52,6 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   );
 };
 
-/* ─── Quantity control (inline, estilo do carrinho) ─── */
 const QuantityControl = ({
   quantity,
   onAdd,
@@ -162,8 +161,8 @@ const MenuPage = () => {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <nav className="w-[82px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-2 overflow-y-auto">
+        {/* ─── Sidebar grande com botões quadrados ─── */}
+        <nav className="w-[100px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-2.5 overflow-y-auto px-2">
           {categorias.map(cat => {
             const Icon = CATEGORY_ICONS[cat.nome] || UtensilsCrossed;
             const isActive = activeCategory === cat.id;
@@ -171,18 +170,25 @@ const MenuPage = () => {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className="w-[70px] flex flex-col items-center gap-1.5 py-3 px-1 transition-all duration-200"
+                className="w-full flex flex-col items-center gap-2 py-3.5 px-2 transition-all duration-200"
                 style={{
-                  borderRadius: '9999px',
-                  backgroundColor: isActive ? 'hsl(30 30% 25%)' : 'transparent',
+                  borderRadius: 16,
+                  backgroundColor: isActive ? 'hsl(30 25% 28%)' : 'hsl(30 10% 22%)',
                   color: isActive ? 'hsl(var(--gold-light))' : 'hsl(var(--muted-foreground))',
                   boxShadow: isActive
-                    ? '0 0 10px hsl(30 43% 52% / 0.35), inset 0 0 0 1px hsl(30 43% 52% / 0.25)'
-                    : 'none',
+                    ? '0 0 14px hsl(30 43% 52% / 0.4), inset 0 0 0 1.5px hsl(30 43% 52% / 0.3)'
+                    : '0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
+                  border: isActive ? 'none' : '1px solid hsl(20 12% 26%)',
+                  wordBreak: 'keep-all',
+                  overflowWrap: 'normal',
+                  hyphens: 'none',
                 }}
               >
-                <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 1.5} />
-                <span className="text-[11px] font-body font-semibold leading-tight text-center line-clamp-2">
+                <Icon className="w-7 h-7" strokeWidth={isActive ? 2.5 : 1.5} />
+                <span
+                  className="text-xs font-body font-semibold leading-snug text-center"
+                  style={{ wordBreak: 'keep-all', overflowWrap: 'normal', hyphens: 'none' }}
+                >
                   {cat.nome}
                 </span>
               </button>
