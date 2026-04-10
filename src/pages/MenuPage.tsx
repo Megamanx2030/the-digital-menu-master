@@ -36,7 +36,7 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   const [error, setError] = useState(false);
 
   return (
-    <div className="relative w-28 h-28 flex-shrink-0 overflow-hidden" style={{ borderRadius: 12 }}>
+    <div className="relative w-32 h-32 flex-shrink-0 overflow-hidden" style={{ borderRadius: 12 }}>
       {!loaded && !error && (
         <div className="absolute inset-0 bg-muted animate-pulse overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.5s_infinite]" />
@@ -68,7 +68,7 @@ const QuantityControl = ({
       <motion.button
         whileTap={{ scale: 0.93 }}
         onClick={onAdd}
-        className="mt-2 flex items-center justify-center gap-1.5 bg-primary rounded-full px-5 py-2.5 transition-colors hover:bg-primary/90 self-start"
+        className="mt-2.5 flex items-center justify-center gap-1.5 bg-primary rounded-full px-5 py-2.5 transition-colors hover:bg-primary/90 self-start"
       >
         <Plus className="w-5 h-5 text-primary-foreground" />
         <span className="text-sm font-body font-bold text-primary-foreground">Adicionar</span>
@@ -80,7 +80,7 @@ const QuantityControl = ({
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="mt-2 flex items-center gap-5 bg-secondary rounded-full px-2 py-1.5 self-start"
+      className="mt-2.5 flex items-center gap-8 bg-secondary rounded-full px-2 py-1.5 self-start"
     >
       <button
         onClick={onRemove}
@@ -88,7 +88,7 @@ const QuantityControl = ({
       >
         <Minus className="w-5 h-5 text-foreground" />
       </button>
-      <span className="text-base font-body font-bold text-foreground w-8 text-center tabular-nums">
+      <span className="text-lg font-body font-bold text-foreground w-6 text-center tabular-nums">
         {quantity}
       </span>
       <button
@@ -244,7 +244,7 @@ const MenuPage = () => {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i < PAGE_SIZE ? i * 0.05 : 0 }}
-                      className="bg-card border border-border overflow-hidden flex gap-3 p-3"
+                      className="bg-card border border-border overflow-hidden flex gap-3.5 p-3"
                       style={{ borderRadius: 12 }}
                     >
                       <ImageWithSkeleton
@@ -252,13 +252,13 @@ const MenuPage = () => {
                         alt={produto.nome}
                       />
                       <div className="flex-1 flex flex-col min-w-0">
-                        <h3 className="font-body font-semibold text-foreground text-sm leading-tight">
+                        <h3 className="font-body font-semibold text-foreground text-base leading-tight">
                           {produto.nome}
                         </h3>
-                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                           {produto.descricao}
                         </p>
-                        <span className="text-gold-light font-bold font-body text-base mt-1.5">
+                        <span className="text-gold-light font-bold font-body text-lg mt-1.5">
                           R$ {produto.preco.toFixed(2).replace('.', ',')}
                         </span>
 
