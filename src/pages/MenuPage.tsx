@@ -29,7 +29,6 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   'Sobremesas': IceCreamCone,
 };
 
-/* ─── Skeleton image loader ─── */
 const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
@@ -53,7 +52,7 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   );
 };
 
-/* ─── Quantity selector (+/- dinâmico) ─── */
+/* ─── Quantity control (mesmo estilo do carrinho) ─── */
 const QuantityControl = ({
   quantity,
   onAdd,
@@ -79,29 +78,27 @@ const QuantityControl = ({
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="absolute -bottom-3 -right-3 flex items-center gap-0 rounded-full shadow-lg z-10 overflow-hidden"
-      style={{ background: 'hsl(var(--primary))' }}
+      className="absolute -bottom-3 -right-3 flex items-center gap-2 bg-secondary rounded-full px-1 py-1 shadow-lg z-10"
     >
       <button
         onClick={onRemove}
-        className="w-10 h-11 flex items-center justify-center hover:bg-black/10 transition-colors"
+        className="w-8 h-8 rounded-full bg-background flex items-center justify-center"
       >
-        <Minus className="w-4 h-4 text-primary-foreground" />
+        <Minus className="w-3.5 h-3.5 text-foreground" />
       </button>
-      <span className="text-sm font-bold text-primary-foreground w-6 text-center font-body tabular-nums">
+      <span className="text-sm font-body font-bold text-foreground w-5 text-center tabular-nums">
         {quantity}
       </span>
       <button
         onClick={onAdd}
-        className="w-10 h-11 flex items-center justify-center hover:bg-black/10 transition-colors"
+        className="w-8 h-8 rounded-full bg-primary flex items-center justify-center"
       >
-        <Plus className="w-4 h-4 text-primary-foreground" />
+        <Plus className="w-3.5 h-3.5 text-primary-foreground" />
       </button>
     </motion.div>
   );
 };
 
-/* ─── Menu Page ─── */
 const MenuPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -163,9 +160,8 @@ const MenuPage = () => {
         </div>
       </div>
 
-      {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* ─── Sidebar maior (82px, textos maiores) ─── */}
+        {/* Sidebar */}
         <nav className="w-[82px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-2 overflow-y-auto">
           {categorias.map(cat => {
             const Icon = CATEGORY_ICONS[cat.nome] || UtensilsCrossed;
@@ -193,7 +189,7 @@ const MenuPage = () => {
           })}
         </nav>
 
-        {/* ─── Produtos da categoria ativa ─── */}
+        {/* Products */}
         <div className="flex-1 overflow-y-auto pb-28 px-3 pt-3">
           <AnimatePresence mode="wait">
             <motion.div
