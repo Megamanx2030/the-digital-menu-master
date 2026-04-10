@@ -134,7 +134,6 @@ const MenuPage = () => {
     fetchData();
   }, [id]);
 
-  /* Reset pagination when category changes */
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [activeCategory]);
@@ -144,7 +143,6 @@ const MenuPage = () => {
   const hasMore = visibleCount < allFiltered.length;
   const activeCategoryName = categorias.find(c => c.id === activeCategory)?.nome || '';
 
-  /* Infinite scroll observer */
   useEffect(() => {
     const el = observerRef.current;
     if (!el || !hasMore) return;
@@ -224,7 +222,7 @@ const MenuPage = () => {
           })}
         </nav>
 
-        {/* Products — 2 colunas portrait, 3 colunas landscape */}
+        {/* Products */}
         <div className="flex-1 overflow-y-auto pb-28 px-3 pt-3">
           <AnimatePresence mode="wait">
             <motion.div
@@ -254,13 +252,13 @@ const MenuPage = () => {
                         alt={produto.nome}
                       />
                       <div className="p-2.5 pb-3">
-                        <h3 className="font-body font-semibold text-foreground text-sm leading-tight line-clamp-2">
+                        <h3 className="font-body font-semibold text-foreground text-sm leading-tight">
                           {produto.nome}
                         </h3>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        <p className="text-sm text-muted-foreground mt-1 leading-snug">
                           {produto.descricao}
                         </p>
-                        <span className="text-gold-light font-bold font-body text-base mt-1 block">
+                        <span className="text-gold-light font-bold font-body text-base mt-1.5 block">
                           R$ {produto.preco.toFixed(2).replace('.', ',')}
                         </span>
 
@@ -275,7 +273,6 @@ const MenuPage = () => {
                 })}
               </div>
 
-              {/* Infinite scroll trigger */}
               {hasMore && (
                 <div ref={observerRef} className="flex justify-center py-6">
                   <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
