@@ -36,9 +36,9 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   const [error, setError] = useState(false);
 
   return (
-    <div className="relative w-32 h-32 flex-shrink-0 overflow-hidden" style={{ borderRadius: 12 }}>
+    <div className="relative w-28 h-28 flex-shrink-0 overflow-hidden bg-muted" style={{ borderRadius: 12 }}>
       {!loaded && !error && (
-        <div className="absolute inset-0 bg-muted animate-pulse overflow-hidden">
+        <div className="absolute inset-0 animate-pulse overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.5s_infinite]" />
         </div>
       )}
@@ -68,10 +68,10 @@ const QuantityControl = ({
       <motion.button
         whileTap={{ scale: 0.93 }}
         onClick={onAdd}
-        className="mt-2.5 flex items-center justify-center gap-1.5 bg-primary rounded-full px-5 py-2.5 transition-colors hover:bg-primary/90 self-start"
+        className="flex items-center justify-center gap-1.5 bg-primary rounded-full px-4 py-1.5 transition-colors hover:bg-primary/90 z-10 relative"
       >
-        <Plus className="w-5 h-5 text-primary-foreground" />
-        <span className="text-sm font-body font-bold text-primary-foreground">Adicionar</span>
+        <Plus className="w-4 h-4 text-primary-foreground" />
+        <span className="text-xs font-body font-bold text-primary-foreground">Adicionar</span>
       </motion.button>
     );
   }
@@ -80,22 +80,22 @@ const QuantityControl = ({
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="mt-2.5 flex items-center gap-8 bg-secondary rounded-full px-2 py-1.5 self-start"
+      className="flex items-center gap-3 bg-secondary rounded-full p-1 z-10 relative"
     >
       <button
         onClick={onRemove}
-        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-background flex items-center justify-center"
+        className="w-8 h-8 rounded-full bg-background shadow-sm flex items-center justify-center"
       >
-        <Minus className="w-5 h-5 text-foreground" />
+        <Minus className="w-4 h-4 text-foreground" />
       </button>
-      <span className="text-lg font-body font-bold text-foreground w-6 text-center tabular-nums">
+      <span className="text-sm font-body font-bold text-foreground min-w-[20px] text-center tabular-nums">
         {quantity}
       </span>
       <button
         onClick={onAdd}
-        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary flex items-center justify-center"
+        className="w-8 h-8 rounded-full bg-primary shadow-sm flex items-center justify-center"
       >
-        <Plus className="w-5 h-5 text-primary-foreground" />
+        <Plus className="w-4 h-4 text-primary-foreground" />
       </button>
     </motion.div>
   );
@@ -186,9 +186,9 @@ const MenuPage = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <nav className="w-[100px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-2.5 overflow-y-auto px-2">
+      <div className="flex flex-1 overflow-hidden w-full">
+        {/* Sidebar Vertical (Ligeiramente mais fina para dar espaço aos cards) */}
+        <nav className="w-[90px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-2.5 overflow-y-auto px-1.5">
           {categorias.map(cat => {
             const Icon = CATEGORY_ICONS[cat.nome] || UtensilsCrossed;
             const isActive = activeCategory === cat.id;
@@ -196,7 +196,7 @@ const MenuPage = () => {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className="w-full flex flex-col items-center gap-2 py-3.5 px-2 transition-all duration-200"
+                className="w-full flex flex-col items-center gap-2 py-3 px-1 transition-all duration-200"
                 style={{
                   borderRadius: 16,
                   backgroundColor: isActive ? 'hsl(30 25% 28%)' : 'hsl(30 10% 22%)',
@@ -205,16 +205,10 @@ const MenuPage = () => {
                     ? '0 0 14px hsl(30 43% 52% / 0.4), inset 0 0 0 1.5px hsl(30 43% 52% / 0.3)'
                     : '0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
                   border: isActive ? 'none' : '1px solid hsl(20 12% 26%)',
-                  wordBreak: 'keep-all',
-                  overflowWrap: 'normal',
-                  hyphens: 'none',
                 }}
               >
-                <Icon className="w-7 h-7" strokeWidth={isActive ? 2.5 : 1.5} />
-                <span
-                  className="text-xs font-body font-semibold leading-snug text-center"
-                  style={{ wordBreak: 'keep-all', overflowWrap: 'normal', hyphens: 'none' }}
-                >
+                <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 1.5} />
+                <span className="text-[10px] font-body font-semibold leading-tight text-center">
                   {cat.nome}
                 </span>
               </button>
@@ -222,8 +216,11 @@ const MenuPage = () => {
           })}
         </nav>
 
-        {/* Products */}
-        <div className="flex-1 overflow-y-auto pb-28 px-3 pt-3">
+        {/* Área de Produtos com Rolagem Livre (Swipe nativo liberado em toda a div) */}
+        <div 
+          className="flex-1 overflow-y-auto overscroll-y-contain pb-28 px-2.5 pt-3 w-full"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={activeCategory}
@@ -231,11 +228,12 @@ const MenuPage = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
+              className="w-full"
             >
               <h2 className="text-lg font-display font-semibold text-foreground mb-3 px-1">
                 {activeCategoryName}
               </h2>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 w-full">
                 {filteredProducts.map((produto, i) => {
                   const qty = getItemQuantity(produto.id);
                   return (
@@ -244,29 +242,40 @@ const MenuPage = () => {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i < PAGE_SIZE ? i * 0.05 : 0 }}
-                      className="bg-card border border-border overflow-hidden flex gap-3.5 p-3"
-                      style={{ borderRadius: 12 }}
+                      className="bg-card border border-border overflow-hidden flex gap-2.5 p-2.5 w-full"
+                      style={{ borderRadius: 16 }}
                     >
+                      {/* Quadrado da Imagem Fixo */}
                       <ImageWithSkeleton
                         src={getProductImage(produto.nome) || '/placeholder.svg'}
                         alt={produto.nome}
                       />
-                      <div className="flex-1 flex flex-col min-w-0">
-                        <h3 className="font-body font-semibold text-foreground text-base leading-tight">
-                          {produto.nome}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                          {produto.descricao}
-                        </p>
-                        <span className="text-gold-light font-bold font-body text-lg mt-1.5">
-                          R$ {produto.preco.toFixed(2).replace('.', ',')}
-                        </span>
+                      
+                      {/* Textos e Botões esticados até a direita */}
+                      <div className="flex-1 flex flex-col min-w-0 w-full justify-between">
+                        <div className="w-full pr-1">
+                          <h3 className="font-body font-bold text-foreground text-sm leading-tight line-clamp-2 w-full">
+                            {produto.nome}
+                          </h3>
+                          <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed line-clamp-2 w-full">
+                            {produto.descricao}
+                          </p>
+                        </div>
+                        
+                        {/* Preço na esquerda, Botão na extremidade direita */}
+                        <div className="mt-2 flex items-center justify-between w-full">
+                          <span className="text-gold-light font-bold font-body text-sm whitespace-nowrap">
+                            R$ {produto.preco.toFixed(2).replace('.', ',')}
+                          </span>
 
-                        <QuantityControl
-                          quantity={qty}
-                          onAdd={() => handleAddItem(produto)}
-                          onRemove={() => handleRemoveItem(produto.id)}
-                        />
+                          <div className="flex-shrink-0">
+                            <QuantityControl
+                              quantity={qty}
+                              onAdd={() => handleAddItem(produto)}
+                              onRemove={() => handleRemoveItem(produto.id)}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </motion.div>
                   );
@@ -274,7 +283,7 @@ const MenuPage = () => {
               </div>
 
               {hasMore && (
-                <div ref={observerRef} className="flex justify-center py-6">
+                <div ref={observerRef} className="flex justify-center py-6 w-full">
                   <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
@@ -283,18 +292,18 @@ const MenuPage = () => {
         </div>
       </div>
 
-      {/* Cart bar */}
+      {/* Carrinho flutuante */}
       <AnimatePresence>
         {totalItems > 0 && (
           <motion.div
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             exit={{ y: 100 }}
-            className="absolute bottom-0 left-0 right-0 z-40 w-full max-w-full lg:max-w-[430px] mx-auto px-3 pb-3"
+            className="absolute bottom-0 left-0 right-0 z-40 w-full max-w-full lg:max-w-[430px] mx-auto px-3 pb-3 pointer-events-none"
           >
             <button
               onClick={() => navigate(`/mesa/${id}/carrinho`)}
-              className="w-full bg-primary text-primary-foreground rounded-xl py-3.5 px-4 flex items-center justify-between font-body font-bold shadow-lg shadow-primary/30 text-sm"
+              className="w-full bg-primary text-primary-foreground rounded-xl py-3.5 px-4 flex items-center justify-between font-body font-bold shadow-lg shadow-primary/30 text-sm pointer-events-auto"
             >
               <div className="flex items-center gap-2.5">
                 <div className="relative">
