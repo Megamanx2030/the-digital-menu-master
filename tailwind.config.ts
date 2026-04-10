@@ -93,6 +93,10 @@ export default {
           "0%, 100%": { boxShadow: "0 0 0 0 hsl(30 43% 52% / 0.4)" },
           "50%": { boxShadow: "0 0 0 12px hsl(30 43% 52% / 0)" },
         },
+        shimmer: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
