@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { getProductImage } from '@/lib/imageMap';
-import { ShoppingCart, Plus, Check, UtensilsCrossed, Beef, Wine, IceCreamCone } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Categoria {
@@ -29,12 +29,13 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   'Sobremesas': IceCreamCone,
 };
 
+/* ─── Skeleton image loader ─── */
 const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
   return (
-    <div className="relative w-full aspect-[4/3] rounded-t-lg overflow-hidden">
+    <div className="relative w-full aspect-[16/10] overflow-hidden" style={{ borderRadius: '12px 12px 0 0' }}>
       {!loaded && !error && (
         <div className="absolute inset-0 bg-muted animate-pulse overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.5s_infinite]" />
@@ -52,18 +53,71 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   );
 };
 
+/* ─── Quantity selector (+/- dinâmico) ─── */
+const QuantityControl = ({
+  quantity,
+  onAdd,
+  onRemove,
+}: {
+  quantity: number;
+  onAdd: () => void;
+  onRemove: () => void;
+}) => {
+  if (quantity === 0) {
+    return (
+      <motion.button
+        whileTap={{ scale: 0.85 }}
+        onClick={onAdd}
+        className="absolute -bottom-2 -right-2 w-10 h-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center shadow-lg z-10 bg-primary shadow-primary/40 hover:bg-primary/90 transition-colors"
+      >
+        <Plus className="w-4 h-4 text-primary-foreground" />
+      </motion.button>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className="absolute -bottom-2 -right-2 flex items-center gap-0 rounded-full shadow-lg z-10 overflow-hidden"
+      style={{ background: 'hsl(var(--primary))' }}
+    >
+      <button
+        onClick={onRemove}
+        className="w-8 h-9 flex items-center justify-center hover:bg-black/10 transition-colors"
+      >
+        <Minus className="w-3.5 h-3.5 text-primary-foreground" />
+      </button>
+      <span className="text-xs font-bold text-primary-foreground w-5 text-center font-body tabular-nums">
+        {quantity}
+      </span>
+      <button
+        onClick={onAdd}
+        className="w-8 h-9 flex items-center justify-center hover:bg-black/10 transition-colors"
+      >
+        <Plus className="w-3.5 h-3.5 text-primary-foreground" />
+      </button>
+    </motion.div>
+  );
+};
+
+/* ─── Menu Page ─── */
 const MenuPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addItem, totalItems, totalPrice } = useCart();
+  const { items, addItem, updateQuantity, totalItems, totalPrice } = useCart();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [mesaNumero, setMesaNumero] = useState<number>(0);
-  const [addedId, setAddedId] = useState<string | null>(null);
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isScrollingByClick = useRef(false);
+
+  const getItemQuantity = useCallback(
+    (produtoId: string) => items.find(i => i.produto_id === produtoId)?.quantidade ?? 0,
+    [items],
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,7 +136,6 @@ const MenuPage = () => {
     fetchData();
   }, [id]);
 
-  // Track active category on scroll
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -112,8 +165,11 @@ const MenuPage = () => {
       preco: produto.preco,
       imagem_url: getProductImage(produto.nome),
     });
-    setAddedId(produto.id);
-    setTimeout(() => setAddedId(null), 600);
+  };
+
+  const handleRemoveItem = (produtoId: string) => {
+    const qty = getItemQuantity(produtoId);
+    updateQuantity(produtoId, qty - 1);
   };
 
   const scrollToCategory = useCallback((catId: string) => {
@@ -143,10 +199,10 @@ const MenuPage = () => {
         </div>
       </div>
 
-      {/* Main content with sidebar */}
+      {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar - categories */}
-        <nav className="w-[72px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-1 overflow-y-auto">
+        {/* ─── Sidebar "Premium Bistro" (botões ovais, glow dourado) ─── */}
+        <nav className="w-[72px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-1.5 overflow-y-auto">
           {categorias.map(cat => {
             const Icon = CATEGORY_ICONS[cat.nome] || UtensilsCrossed;
             const isActive = activeCategory === cat.id;
@@ -154,11 +210,15 @@ const MenuPage = () => {
               <button
                 key={cat.id}
                 onClick={() => scrollToCategory(cat.id)}
-                className={`w-[60px] flex flex-col items-center gap-1 py-3 px-1 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                }`}
+                className="w-[60px] flex flex-col items-center gap-1 py-2.5 px-1 transition-all duration-200"
+                style={{
+                  borderRadius: '9999px',
+                  backgroundColor: isActive ? 'hsl(30 30% 25%)' : 'transparent',
+                  color: isActive ? 'hsl(var(--gold-light))' : 'hsl(var(--muted-foreground))',
+                  boxShadow: isActive
+                    ? '0 0 10px hsl(30 43% 52% / 0.35), inset 0 0 0 1px hsl(30 43% 52% / 0.25)'
+                    : 'none',
+                }}
               >
                 <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 1.5} />
                 <span className="text-[10px] font-body font-medium leading-tight text-center line-clamp-2">
@@ -169,7 +229,7 @@ const MenuPage = () => {
           })}
         </nav>
 
-        {/* Right content - products */}
+        {/* ─── Products (cards compactos, grid 2 colunas) ─── */}
         <div
           ref={scrollContainerRef}
           className="flex-1 overflow-y-auto pb-28 px-3 pt-3"
@@ -177,53 +237,40 @@ const MenuPage = () => {
           {categorias.map(cat => {
             const catProducts = produtos.filter(p => p.categoria_id === cat.id);
             return (
-              <div key={cat.id} ref={el => { categoryRefs.current[cat.id] = el; }} className="mb-6">
-                <h2 className="text-base font-display font-semibold text-foreground mb-3 px-1">{cat.nome}</h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {catProducts.map((produto, i) => (
-                    <motion.div
-                      key={produto.id}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.07 }}
-                      className="relative bg-card rounded-lg overflow-visible border border-border"
-                    >
-                      <ImageWithSkeleton
-                        src={getProductImage(produto.nome) || '/placeholder.svg'}
-                        alt={produto.nome}
-                      />
-                      <div className="p-2.5 pb-3">
-                        <h3 className="font-body font-semibold text-foreground text-xs leading-tight line-clamp-2">{produto.nome}</h3>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{produto.descricao}</p>
-                        <span className="text-gold-light font-bold font-body text-sm mt-1.5 block">
-                          R$ {produto.preco.toFixed(2).replace('.', ',')}
-                        </span>
-                      </div>
-
-                      {/* FAB add button */}
-                      <motion.button
-                        whileTap={{ scale: 0.85 }}
-                        onClick={() => handleAddItem(produto)}
-                        className={`absolute -bottom-2 -right-2 w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center shadow-lg transition-colors z-10 ${
-                          addedId === produto.id
-                            ? 'bg-[hsl(var(--kds-green))] shadow-[hsl(var(--kds-green))]/30'
-                            : 'bg-primary shadow-primary/40 hover:bg-primary/90'
-                        }`}
+              <div key={cat.id} ref={el => { categoryRefs.current[cat.id] = el; }} className="mb-5">
+                <h2 className="text-base font-display font-semibold text-foreground mb-2.5 px-1">{cat.nome}</h2>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {catProducts.map((produto, i) => {
+                    const qty = getItemQuantity(produto.id);
+                    return (
+                      <motion.div
+                        key={produto.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.07 }}
+                        className="relative bg-card overflow-visible border border-border"
+                        style={{ borderRadius: 12 }}
                       >
-                        <AnimatePresence mode="wait">
-                          {addedId === produto.id ? (
-                            <motion.span key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                              <Check className="w-4 h-4 text-primary-foreground" />
-                            </motion.span>
-                          ) : (
-                            <motion.span key="plus" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                              <Plus className="w-4 h-4 text-primary-foreground" />
-                            </motion.span>
-                          )}
-                        </AnimatePresence>
-                      </motion.button>
-                    </motion.div>
-                  ))}
+                        <ImageWithSkeleton
+                          src={getProductImage(produto.nome) || '/placeholder.svg'}
+                          alt={produto.nome}
+                        />
+                        <div className="p-2 pb-2.5">
+                          <h3 className="font-body font-semibold text-foreground text-xs leading-tight line-clamp-1">{produto.nome}</h3>
+                          <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{produto.descricao}</p>
+                          <span className="text-gold-light font-bold font-body text-sm mt-1 block">
+                            R$ {produto.preco.toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+
+                        <QuantityControl
+                          quantity={qty}
+                          onAdd={() => handleAddItem(produto)}
+                          onRemove={() => handleRemoveItem(produto.id)}
+                        />
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             );
