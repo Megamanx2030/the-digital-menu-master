@@ -109,6 +109,9 @@
   .bg-kds-red {
     background-color: hsl(var(--kds-red));
   }
+  .text-gold-light {
+    color: hsl(var(--gold-light));
+  }
   .text-kds-green {
     color: hsl(var(--kds-green));
   }
