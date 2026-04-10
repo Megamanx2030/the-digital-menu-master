@@ -52,7 +52,7 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   );
 };
 
-/* ─── Quantity control (mesmo estilo do carrinho) ─── */
+/* ─── Quantity control (inline, estilo do carrinho) ─── */
 const QuantityControl = ({
   quantity,
   onAdd,
@@ -65,20 +65,21 @@ const QuantityControl = ({
   if (quantity === 0) {
     return (
       <motion.button
-        whileTap={{ scale: 0.85 }}
+        whileTap={{ scale: 0.93 }}
         onClick={onAdd}
-        className="absolute -bottom-3 -right-3 w-12 h-12 min-w-[48px] min-h-[48px] rounded-full flex items-center justify-center shadow-lg z-10 bg-primary shadow-primary/40 hover:bg-primary/90 transition-colors"
+        className="w-full mt-2 flex items-center justify-center gap-1.5 bg-primary rounded-full py-2 transition-colors hover:bg-primary/90"
       >
-        <Plus className="w-5 h-5 text-primary-foreground" />
+        <Plus className="w-4 h-4 text-primary-foreground" />
+        <span className="text-xs font-body font-bold text-primary-foreground">Adicionar</span>
       </motion.button>
     );
   }
 
   return (
     <motion.div
-      initial={{ scale: 0.8, opacity: 0 }}
+      initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="absolute -bottom-3 -right-3 flex items-center gap-2 bg-secondary rounded-full px-1 py-1 shadow-lg z-10"
+      className="w-full mt-2 flex items-center justify-between bg-secondary rounded-full px-1 py-1"
     >
       <button
         onClick={onRemove}
@@ -86,7 +87,7 @@ const QuantityControl = ({
       >
         <Minus className="w-3.5 h-3.5 text-foreground" />
       </button>
-      <span className="text-sm font-body font-bold text-foreground w-5 text-center tabular-nums">
+      <span className="text-sm font-body font-bold text-foreground tabular-nums">
         {quantity}
       </span>
       <button
@@ -211,7 +212,7 @@ const MenuPage = () => {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.07 }}
-                      className="relative bg-card overflow-visible border border-border"
+                      className="bg-card border border-border overflow-hidden"
                       style={{ borderRadius: 12 }}
                     >
                       <ImageWithSkeleton
@@ -228,13 +229,13 @@ const MenuPage = () => {
                         <span className="text-gold-light font-bold font-body text-base mt-1 block">
                           R$ {produto.preco.toFixed(2).replace('.', ',')}
                         </span>
-                      </div>
 
-                      <QuantityControl
-                        quantity={qty}
-                        onAdd={() => handleAddItem(produto)}
-                        onRemove={() => handleRemoveItem(produto.id)}
-                      />
+                        <QuantityControl
+                          quantity={qty}
+                          onAdd={() => handleAddItem(produto)}
+                          onRemove={() => handleRemoveItem(produto.id)}
+                        />
+                      </div>
                     </motion.div>
                   );
                 })}
