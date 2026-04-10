@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
@@ -110,9 +110,6 @@ const MenuPage = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [mesaNumero, setMesaNumero] = useState<number>(0);
-  const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const isScrollingByClick = useRef(false);
 
   const getItemQuantity = useCallback(
     (produtoId: string) => items.find(i => i.produto_id === produtoId)?.quantidade ?? 0,
@@ -136,27 +133,9 @@ const MenuPage = () => {
     fetchData();
   }, [id]);
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      if (isScrollingByClick.current) return;
-      for (const cat of [...categorias].reverse()) {
-        const el = categoryRefs.current[cat.id];
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          const containerRect = container.getBoundingClientRect();
-          if (rect.top <= containerRect.top + 80) {
-            setActiveCategory(cat.id);
-            break;
-          }
-        }
-      }
-    };
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [categorias]);
+  /* Filtra produtos pela categoria ativa */
+  const filteredProducts = produtos.filter(p => p.categoria_id === activeCategory);
+  const activeCategoryName = categorias.find(c => c.id === activeCategory)?.nome || '';
 
   const handleAddItem = (produto: Produto) => {
     addItem({
@@ -171,20 +150,6 @@ const MenuPage = () => {
     const qty = getItemQuantity(produtoId);
     updateQuantity(produtoId, qty - 1);
   };
-
-  const scrollToCategory = useCallback((catId: string) => {
-    setActiveCategory(catId);
-    isScrollingByClick.current = true;
-    const el = categoryRefs.current[catId];
-    const container = scrollContainerRef.current;
-    if (el && container) {
-      const containerTop = container.getBoundingClientRect().top;
-      const elTop = el.getBoundingClientRect().top;
-      const offset = container.scrollTop + (elTop - containerTop) - 16;
-      container.scrollTo({ top: offset, behavior: 'smooth' });
-    }
-    setTimeout(() => { isScrollingByClick.current = false; }, 800);
-  }, []);
 
   return (
     <div className="h-screen bg-background flex flex-col max-w-[430px] mx-auto overflow-hidden">
@@ -201,7 +166,7 @@ const MenuPage = () => {
 
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* ─── Sidebar "Premium Bistro" (botões ovais, glow dourado) ─── */}
+        {/* ─── Sidebar (botões ovais, glow dourado) ─── */}
         <nav className="w-[72px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-1.5 overflow-y-auto">
           {categorias.map(cat => {
             const Icon = CATEGORY_ICONS[cat.nome] || UtensilsCrossed;
@@ -209,7 +174,7 @@ const MenuPage = () => {
             return (
               <button
                 key={cat.id}
-                onClick={() => scrollToCategory(cat.id)}
+                onClick={() => setActiveCategory(cat.id)}
                 className="w-[60px] flex flex-col items-center gap-1 py-2.5 px-1 transition-all duration-200"
                 style={{
                   borderRadius: '9999px',
@@ -229,52 +194,58 @@ const MenuPage = () => {
           })}
         </nav>
 
-        {/* ─── Products (cards compactos, grid 2 colunas) ─── */}
-        <div
-          ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto pb-28 px-3 pt-3"
-        >
-          {categorias.map(cat => {
-            const catProducts = produtos.filter(p => p.categoria_id === cat.id);
-            return (
-              <div key={cat.id} ref={el => { categoryRefs.current[cat.id] = el; }} className="mb-5">
-                <h2 className="text-base font-display font-semibold text-foreground mb-2.5 px-1">{cat.nome}</h2>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {catProducts.map((produto, i) => {
-                    const qty = getItemQuantity(produto.id);
-                    return (
-                      <motion.div
-                        key={produto.id}
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.07 }}
-                        className="relative bg-card overflow-visible border border-border"
-                        style={{ borderRadius: 12 }}
-                      >
-                        <ImageWithSkeleton
-                          src={getProductImage(produto.nome) || '/placeholder.svg'}
-                          alt={produto.nome}
-                        />
-                        <div className="p-2 pb-2.5">
-                          <h3 className="font-body font-semibold text-foreground text-xs leading-tight line-clamp-1">{produto.nome}</h3>
-                          <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{produto.descricao}</p>
-                          <span className="text-gold-light font-bold font-body text-sm mt-1 block">
-                            R$ {produto.preco.toFixed(2).replace('.', ',')}
-                          </span>
-                        </div>
+        {/* ─── Produtos da categoria ativa ─── */}
+        <div className="flex-1 overflow-y-auto pb-28 px-3 pt-3">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <h2 className="text-base font-display font-semibold text-foreground mb-2.5 px-1">
+                {activeCategoryName}
+              </h2>
+              <div className="grid grid-cols-2 gap-2.5">
+                {filteredProducts.map((produto, i) => {
+                  const qty = getItemQuantity(produto.id);
+                  return (
+                    <motion.div
+                      key={produto.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.07 }}
+                      className="relative bg-card overflow-visible border border-border"
+                      style={{ borderRadius: 12 }}
+                    >
+                      <ImageWithSkeleton
+                        src={getProductImage(produto.nome) || '/placeholder.svg'}
+                        alt={produto.nome}
+                      />
+                      <div className="p-2 pb-2.5">
+                        <h3 className="font-body font-semibold text-foreground text-xs leading-tight line-clamp-1">
+                          {produto.nome}
+                        </h3>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                          {produto.descricao}
+                        </p>
+                        <span className="text-gold-light font-bold font-body text-sm mt-1 block">
+                          R$ {produto.preco.toFixed(2).replace('.', ',')}
+                        </span>
+                      </div>
 
-                        <QuantityControl
-                          quantity={qty}
-                          onAdd={() => handleAddItem(produto)}
-                          onRemove={() => handleRemoveItem(produto.id)}
-                        />
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                      <QuantityControl
+                        quantity={qty}
+                        onAdd={() => handleAddItem(produto)}
+                        onRemove={() => handleRemoveItem(produto.id)}
+                      />
+                    </motion.div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
