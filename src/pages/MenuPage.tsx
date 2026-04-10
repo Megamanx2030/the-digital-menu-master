@@ -36,7 +36,7 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   const [error, setError] = useState(false);
 
   return (
-    <div className="relative w-full aspect-[4/3] overflow-hidden" style={{ borderRadius: '12px 12px 0 0' }}>
+    <div className="relative w-28 h-28 flex-shrink-0 overflow-hidden" style={{ borderRadius: 12 }}>
       {!loaded && !error && (
         <div className="absolute inset-0 bg-muted animate-pulse overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.5s_infinite]" />
@@ -68,7 +68,7 @@ const QuantityControl = ({
       <motion.button
         whileTap={{ scale: 0.93 }}
         onClick={onAdd}
-        className="w-full mt-2 flex items-center justify-center gap-1.5 bg-primary rounded-full py-2 transition-colors hover:bg-primary/90"
+        className="mt-2 flex items-center justify-center gap-1.5 bg-primary rounded-full px-4 py-1.5 transition-colors hover:bg-primary/90 self-start"
       >
         <Plus className="w-4 h-4 text-primary-foreground" />
         <span className="text-xs font-body font-bold text-primary-foreground">Adicionar</span>
@@ -80,7 +80,7 @@ const QuantityControl = ({
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="w-full mt-2 flex items-center justify-between bg-secondary rounded-full px-1 py-1"
+      className="mt-2 flex items-center bg-secondary rounded-full px-1 py-1 self-start"
     >
       <button
         onClick={onRemove}
@@ -88,7 +88,7 @@ const QuantityControl = ({
       >
         <Minus className="w-3.5 h-3.5 text-foreground" />
       </button>
-      <span className="text-sm font-body font-bold text-foreground tabular-nums">
+      <span className="text-sm font-body font-bold text-foreground w-8 text-center tabular-nums">
         {quantity}
       </span>
       <button
@@ -222,7 +222,7 @@ const MenuPage = () => {
           })}
         </nav>
 
-        {/* Products */}
+        {/* Products — lista vertical */}
         <div className="flex-1 overflow-y-auto pb-28 px-3 pt-3">
           <AnimatePresence mode="wait">
             <motion.div
@@ -235,7 +235,7 @@ const MenuPage = () => {
               <h2 className="text-lg font-display font-semibold text-foreground mb-3 px-1">
                 {activeCategoryName}
               </h2>
-              <div className="grid grid-cols-2 landscape:grid-cols-3 gap-2.5">
+              <div className="flex flex-col gap-3">
                 {filteredProducts.map((produto, i) => {
                   const qty = getItemQuantity(produto.id);
                   return (
@@ -244,21 +244,21 @@ const MenuPage = () => {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i < PAGE_SIZE ? i * 0.05 : 0 }}
-                      className="bg-card border border-border overflow-hidden"
+                      className="bg-card border border-border overflow-hidden flex gap-3 p-3"
                       style={{ borderRadius: 12 }}
                     >
                       <ImageWithSkeleton
                         src={getProductImage(produto.nome) || '/placeholder.svg'}
                         alt={produto.nome}
                       />
-                      <div className="p-2.5 pb-3">
-                        <h3 className="font-body font-semibold text-foreground text-sm leading-tight line-clamp-1">
+                      <div className="flex-1 flex flex-col min-w-0">
+                        <h3 className="font-body font-semibold text-foreground text-sm leading-tight">
                           {produto.nome}
                         </h3>
-                        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                           {produto.descricao}
                         </p>
-                        <span className="text-gold-light font-bold font-body text-base mt-1 block">
+                        <span className="text-gold-light font-bold font-body text-base mt-1.5">
                           R$ {produto.preco.toFixed(2).replace('.', ',')}
                         </span>
 
