@@ -80,7 +80,7 @@ const QuantityControl = ({
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="mt-2 flex items-center gap-3 bg-secondary rounded-full px-1.5 py-1.5 self-start"
+      className="mt-2 flex items-center gap-5 bg-secondary rounded-full px-2 py-1.5 self-start"
     >
       <button
         onClick={onRemove}
@@ -88,7 +88,7 @@ const QuantityControl = ({
       >
         <Minus className="w-5 h-5 text-foreground" />
       </button>
-      <span className="text-base font-body font-bold text-foreground w-6 text-center tabular-nums">
+      <span className="text-base font-body font-bold text-foreground w-8 text-center tabular-nums">
         {quantity}
       </span>
       <button
