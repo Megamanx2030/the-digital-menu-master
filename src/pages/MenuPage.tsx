@@ -36,7 +36,7 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   const [error, setError] = useState(false);
 
   return (
-    <div className="relative w-full aspect-[16/10] overflow-hidden" style={{ borderRadius: '12px 12px 0 0' }}>
+    <div className="relative w-full aspect-[4/3] overflow-hidden" style={{ borderRadius: '12px 12px 0 0' }}>
       {!loaded && !error && (
         <div className="absolute inset-0 bg-muted animate-pulse overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.5s_infinite]" />
@@ -252,13 +252,13 @@ const MenuPage = () => {
                         alt={produto.nome}
                       />
                       <div className="p-2.5 pb-3">
-                        <h3 className="font-body font-semibold text-foreground text-sm leading-tight">
+                        <h3 className="font-body font-semibold text-foreground text-sm leading-tight line-clamp-1">
                           {produto.nome}
                         </h3>
-                        <p className="text-sm text-muted-foreground mt-1 leading-snug">
+                        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">
                           {produto.descricao}
                         </p>
-                        <span className="text-gold-light font-bold font-body text-base mt-1.5 block">
+                        <span className="text-gold-light font-bold font-body text-base mt-1 block">
                           R$ {produto.preco.toFixed(2).replace('.', ',')}
                         </span>
 
