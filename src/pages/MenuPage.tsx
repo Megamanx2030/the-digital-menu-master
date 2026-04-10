@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
@@ -28,6 +28,8 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   'Bebidas': Wine,
   'Sobremesas': IceCreamCone,
 };
+
+const PAGE_SIZE = 20;
 
 const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   const [loaded, setLoaded] = useState(false);
@@ -107,6 +109,8 @@ const MenuPage = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [mesaNumero, setMesaNumero] = useState<number>(0);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const observerRef = useRef<HTMLDivElement>(null);
 
   const getItemQuantity = useCallback(
     (produtoId: string) => items.find(i => i.produto_id === produtoId)?.quantidade ?? 0,
@@ -130,8 +134,32 @@ const MenuPage = () => {
     fetchData();
   }, [id]);
 
-  const filteredProducts = produtos.filter(p => p.categoria_id === activeCategory);
+  /* Reset pagination when category changes */
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeCategory]);
+
+  const allFiltered = produtos.filter(p => p.categoria_id === activeCategory);
+  const filteredProducts = allFiltered.slice(0, visibleCount);
+  const hasMore = visibleCount < allFiltered.length;
   const activeCategoryName = categorias.find(c => c.id === activeCategory)?.nome || '';
+
+  /* Infinite scroll observer */
+  useEffect(() => {
+    const el = observerRef.current;
+    if (!el || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount(prev => prev + PAGE_SIZE);
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, activeCategory]);
 
   const handleAddItem = (produto: Produto) => {
     addItem({
@@ -196,7 +224,7 @@ const MenuPage = () => {
           })}
         </nav>
 
-        {/* Products */}
+        {/* Products — 2 colunas portrait, 3 colunas landscape */}
         <div className="flex-1 overflow-y-auto pb-28 px-3 pt-3">
           <AnimatePresence mode="wait">
             <motion.div
@@ -209,7 +237,7 @@ const MenuPage = () => {
               <h2 className="text-lg font-display font-semibold text-foreground mb-3 px-1">
                 {activeCategoryName}
               </h2>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 landscape:grid-cols-3 gap-2.5">
                 {filteredProducts.map((produto, i) => {
                   const qty = getItemQuantity(produto.id);
                   return (
@@ -217,7 +245,7 @@ const MenuPage = () => {
                       key={produto.id}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.07 }}
+                      transition={{ delay: i < PAGE_SIZE ? i * 0.05 : 0 }}
                       className="bg-card border border-border overflow-hidden"
                       style={{ borderRadius: 12 }}
                     >
@@ -246,6 +274,13 @@ const MenuPage = () => {
                   );
                 })}
               </div>
+
+              {/* Infinite scroll trigger */}
+              {hasMore && (
+                <div ref={observerRef} className="flex justify-center py-6">
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
