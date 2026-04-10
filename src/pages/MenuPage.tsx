@@ -68,9 +68,9 @@ const QuantityControl = ({
       <motion.button
         whileTap={{ scale: 0.85 }}
         onClick={onAdd}
-        className="absolute -bottom-2 -right-2 w-10 h-10 min-w-[40px] min-h-[40px] rounded-full flex items-center justify-center shadow-lg z-10 bg-primary shadow-primary/40 hover:bg-primary/90 transition-colors"
+        className="absolute -bottom-3 -right-3 w-12 h-12 min-w-[48px] min-h-[48px] rounded-full flex items-center justify-center shadow-lg z-10 bg-primary shadow-primary/40 hover:bg-primary/90 transition-colors"
       >
-        <Plus className="w-4 h-4 text-primary-foreground" />
+        <Plus className="w-5 h-5 text-primary-foreground" />
       </motion.button>
     );
   }
@@ -79,23 +79,23 @@ const QuantityControl = ({
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="absolute -bottom-2 -right-2 flex items-center gap-0 rounded-full shadow-lg z-10 overflow-hidden"
+      className="absolute -bottom-3 -right-3 flex items-center gap-0 rounded-full shadow-lg z-10 overflow-hidden"
       style={{ background: 'hsl(var(--primary))' }}
     >
       <button
         onClick={onRemove}
-        className="w-8 h-9 flex items-center justify-center hover:bg-black/10 transition-colors"
+        className="w-10 h-11 flex items-center justify-center hover:bg-black/10 transition-colors"
       >
-        <Minus className="w-3.5 h-3.5 text-primary-foreground" />
+        <Minus className="w-4 h-4 text-primary-foreground" />
       </button>
-      <span className="text-xs font-bold text-primary-foreground w-5 text-center font-body tabular-nums">
+      <span className="text-sm font-bold text-primary-foreground w-6 text-center font-body tabular-nums">
         {quantity}
       </span>
       <button
         onClick={onAdd}
-        className="w-8 h-9 flex items-center justify-center hover:bg-black/10 transition-colors"
+        className="w-10 h-11 flex items-center justify-center hover:bg-black/10 transition-colors"
       >
-        <Plus className="w-3.5 h-3.5 text-primary-foreground" />
+        <Plus className="w-4 h-4 text-primary-foreground" />
       </button>
     </motion.div>
   );
@@ -133,7 +133,6 @@ const MenuPage = () => {
     fetchData();
   }, [id]);
 
-  /* Filtra produtos pela categoria ativa */
   const filteredProducts = produtos.filter(p => p.categoria_id === activeCategory);
   const activeCategoryName = categorias.find(c => c.id === activeCategory)?.nome || '';
 
@@ -166,8 +165,8 @@ const MenuPage = () => {
 
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* ─── Sidebar (botões ovais, glow dourado) ─── */}
-        <nav className="w-[72px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-1.5 overflow-y-auto">
+        {/* ─── Sidebar maior (82px, textos maiores) ─── */}
+        <nav className="w-[82px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-2 overflow-y-auto">
           {categorias.map(cat => {
             const Icon = CATEGORY_ICONS[cat.nome] || UtensilsCrossed;
             const isActive = activeCategory === cat.id;
@@ -175,7 +174,7 @@ const MenuPage = () => {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className="w-[60px] flex flex-col items-center gap-1 py-2.5 px-1 transition-all duration-200"
+                className="w-[70px] flex flex-col items-center gap-1.5 py-3 px-1 transition-all duration-200"
                 style={{
                   borderRadius: '9999px',
                   backgroundColor: isActive ? 'hsl(30 30% 25%)' : 'transparent',
@@ -185,8 +184,8 @@ const MenuPage = () => {
                     : 'none',
                 }}
               >
-                <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 1.5} />
-                <span className="text-[10px] font-body font-medium leading-tight text-center line-clamp-2">
+                <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 1.5} />
+                <span className="text-[11px] font-body font-semibold leading-tight text-center line-clamp-2">
                   {cat.nome}
                 </span>
               </button>
@@ -204,7 +203,7 @@ const MenuPage = () => {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <h2 className="text-base font-display font-semibold text-foreground mb-2.5 px-1">
+              <h2 className="text-lg font-display font-semibold text-foreground mb-3 px-1">
                 {activeCategoryName}
               </h2>
               <div className="grid grid-cols-2 gap-2.5">
@@ -223,14 +222,14 @@ const MenuPage = () => {
                         src={getProductImage(produto.nome) || '/placeholder.svg'}
                         alt={produto.nome}
                       />
-                      <div className="p-2 pb-2.5">
-                        <h3 className="font-body font-semibold text-foreground text-xs leading-tight line-clamp-1">
+                      <div className="p-2.5 pb-3">
+                        <h3 className="font-body font-semibold text-foreground text-sm leading-tight line-clamp-2">
                           {produto.nome}
                         </h3>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                           {produto.descricao}
                         </p>
-                        <span className="text-gold-light font-bold font-body text-sm mt-1 block">
+                        <span className="text-gold-light font-bold font-body text-base mt-1 block">
                           R$ {produto.preco.toFixed(2).replace('.', ',')}
                         </span>
                       </div>
