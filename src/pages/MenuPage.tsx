@@ -148,7 +148,7 @@ const MenuPage = () => {
   };
 
   return (
-    <div className="h-screen bg-background flex flex-col max-w-[430px] mx-auto overflow-hidden">
+    <div className="h-screen bg-background flex flex-col w-full max-w-full lg:max-w-[430px] mx-auto overflow-hidden">
       {/* Header */}
       <div className="bg-card border-b border-border px-4 py-4 flex items-center justify-between flex-shrink-0 z-20">
         <div>
@@ -161,7 +161,7 @@ const MenuPage = () => {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* ─── Sidebar grande com botões quadrados ─── */}
+        {/* Sidebar */}
         <nav className="w-[100px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-2.5 overflow-y-auto px-2">
           {categorias.map(cat => {
             const Icon = CATEGORY_ICONS[cat.nome] || UtensilsCrossed;
@@ -258,7 +258,7 @@ const MenuPage = () => {
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             exit={{ y: 100 }}
-            className="absolute bottom-0 left-0 right-0 z-40 max-w-[430px] mx-auto px-3 pb-3"
+            className="absolute bottom-0 left-0 right-0 z-40 w-full max-w-full lg:max-w-[430px] mx-auto px-3 pb-3"
           >
             <button
               onClick={() => navigate(`/mesa/${id}/carrinho`)}
