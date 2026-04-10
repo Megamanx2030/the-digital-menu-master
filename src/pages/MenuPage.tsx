@@ -68,10 +68,10 @@ const QuantityControl = ({
       <motion.button
         whileTap={{ scale: 0.93 }}
         onClick={onAdd}
-        className="mt-2 flex items-center justify-center gap-1.5 bg-primary rounded-full px-4 py-1.5 transition-colors hover:bg-primary/90 self-start"
+        className="mt-2 flex items-center justify-center gap-1.5 bg-primary rounded-full px-5 py-2.5 transition-colors hover:bg-primary/90 self-start"
       >
-        <Plus className="w-4 h-4 text-primary-foreground" />
-        <span className="text-xs font-body font-bold text-primary-foreground">Adicionar</span>
+        <Plus className="w-5 h-5 text-primary-foreground" />
+        <span className="text-sm font-body font-bold text-primary-foreground">Adicionar</span>
       </motion.button>
     );
   }
@@ -80,22 +80,22 @@ const QuantityControl = ({
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="mt-2 flex items-center bg-secondary rounded-full px-1 py-1 self-start"
+      className="mt-2 flex items-center gap-3 bg-secondary rounded-full px-1.5 py-1.5 self-start"
     >
       <button
         onClick={onRemove}
-        className="w-8 h-8 rounded-full bg-background flex items-center justify-center"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-background flex items-center justify-center"
       >
-        <Minus className="w-3.5 h-3.5 text-foreground" />
+        <Minus className="w-5 h-5 text-foreground" />
       </button>
-      <span className="text-sm font-body font-bold text-foreground w-8 text-center tabular-nums">
+      <span className="text-base font-body font-bold text-foreground w-6 text-center tabular-nums">
         {quantity}
       </span>
       <button
         onClick={onAdd}
-        className="w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary flex items-center justify-center"
       >
-        <Plus className="w-3.5 h-3.5 text-primary-foreground" />
+        <Plus className="w-5 h-5 text-primary-foreground" />
       </button>
     </motion.div>
   );
@@ -222,7 +222,7 @@ const MenuPage = () => {
           })}
         </nav>
 
-        {/* Products — lista vertical */}
+        {/* Products */}
         <div className="flex-1 overflow-y-auto pb-28 px-3 pt-3">
           <AnimatePresence mode="wait">
             <motion.div
