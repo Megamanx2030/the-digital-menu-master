@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { getProductImage, carouselImages } from '@/lib/imageMap';
-import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 
@@ -28,8 +28,9 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   'Pratos Principais': Beef,
   'Bebidas': Wine,
   'Sobremesas': IceCreamCone,
-  'Bebidas Não Alcoólicas': Zap,
 };
+
+const NON_ALCOHOLIC_PRODUCTS = ['Red Bull Energy Drink'];
 
 const PAGE_SIZE = 20;
 
@@ -282,7 +283,18 @@ const MenuPage = () => {
                 {activeCategoryName}
               </h2>
               <div className="flex flex-col gap-3 w-full">
-                {filteredProducts.map((produto, i) => {
+                {(() => {
+                  const alcoholic = filteredProducts.filter(p => !NON_ALCOHOLIC_PRODUCTS.includes(p.nome));
+                  const nonAlcoholic = filteredProducts.filter(p => NON_ALCOHOLIC_PRODUCTS.includes(p.nome));
+                  const combined = [...alcoholic, ...(nonAlcoholic.length > 0 ? [null, ...nonAlcoholic] : [])];
+                  return combined.map((produto, i) => {
+                    if (produto === null) {
+                      return (
+                        <h3 key="sub-header" className="text-base font-display font-semibold text-gold-light mt-4 mb-1 px-1">
+                          Bebidas Não Alcoólicas
+                        </h3>
+                      );
+                    }
                   const qty = getItemQuantity(produto.id);
                   return (
                     <motion.div
@@ -337,7 +349,8 @@ const MenuPage = () => {
                       )}
                     </motion.div>
                   );
-                })}
+                  });
+                })()}
               </div>
 
               {hasMore && (
