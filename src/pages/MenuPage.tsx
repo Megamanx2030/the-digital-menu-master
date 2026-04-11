@@ -68,7 +68,7 @@ const QuantityControl = ({
       <motion.button
         whileTap={{ scale: 0.85 }}
         onClick={onAdd}
-        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary flex items-center justify-center shadow-md shadow-primary/30 transition-colors hover:bg-primary/90 z-10 relative"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary flex items-center justify-center shadow-md shadow-primary/30 transition-colors hover:bg-primary/90"
       >
         <Plus className="w-5 h-5 text-primary-foreground" />
       </motion.button>
@@ -79,7 +79,7 @@ const QuantityControl = ({
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="flex items-center gap-6 bg-secondary rounded-full px-2 py-1.5 z-10 relative"
+      className="flex items-center justify-between w-full bg-secondary rounded-full px-2 py-1.5"
     >
       <button
         onClick={onRemove}
@@ -241,38 +241,47 @@ const MenuPage = () => {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i < PAGE_SIZE ? i * 0.05 : 0 }}
-                      className="bg-card border border-border overflow-hidden flex gap-2.5 p-2.5 w-full"
+                      className="bg-card border border-border overflow-hidden p-3 w-full"
                       style={{ borderRadius: 16 }}
                     >
-                      <ImageWithSkeleton
-                        src={getProductImage(produto.nome) || '/placeholder.svg'}
-                        alt={produto.nome}
-                      />
+                      {/* Top: imagem + info */}
+                      <div className="flex gap-3 w-full">
+                        <ImageWithSkeleton
+                          src={getProductImage(produto.nome) || '/placeholder.svg'}
+                          alt={produto.nome}
+                        />
 
-                      <div className="flex-1 flex flex-col min-w-0 w-full justify-between">
-                        <div className="w-full pr-1">
-                          <h3 className="font-body font-bold text-foreground text-sm leading-tight line-clamp-2 w-full">
+                        <div className="flex-1 flex flex-col min-w-0">
+                          <h3 className="font-body font-bold text-foreground text-sm leading-tight">
                             {produto.nome}
                           </h3>
-                          <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed line-clamp-2 w-full">
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                             {produto.descricao}
                           </p>
                         </div>
-
-                        <div className="mt-2 flex items-center justify-between w-full">
-                          <span className="text-gold-light font-bold font-body text-sm whitespace-nowrap">
-                            R$ {produto.preco.toFixed(2).replace('.', ',')}
-                          </span>
-
-                          <div className="flex-shrink-0">
-                            <QuantityControl
-                              quantity={qty}
-                              onAdd={() => handleAddItem(produto)}
-                              onRemove={() => handleRemoveItem(produto.id)}
-                            />
-                          </div>
-                        </div>
                       </div>
+
+                      {/* Bottom: preço + controle */}
+                      <div className="mt-2.5 flex items-center justify-between w-full">
+                        <span className="text-gold-light font-bold font-body text-base whitespace-nowrap">
+                          R$ {produto.preco.toFixed(2).replace('.', ',')}
+                        </span>
+
+                        {qty === 0 ? (
+                          <QuantityControl quantity={qty} onAdd={() => handleAddItem(produto)} onRemove={() => handleRemoveItem(produto.id)} />
+                        ) : null}
+                      </div>
+
+                      {/* Quantity bar full width when qty > 0 */}
+                      {qty > 0 && (
+                        <div className="mt-2.5 w-full">
+                          <QuantityControl
+                            quantity={qty}
+                            onAdd={() => handleAddItem(produto)}
+                            onRemove={() => handleRemoveItem(produto.id)}
+                          />
+                        </div>
+                      )}
                     </motion.div>
                   );
                 })}
