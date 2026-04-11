@@ -101,6 +101,7 @@ const CarouselImage = ({ images }: { images: { src: string; label: string }[] })
       </div>
     </div>
   );
+};
 
 const QuantityControl = ({
   quantity,
