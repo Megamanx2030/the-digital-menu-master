@@ -295,10 +295,14 @@ const MenuPage = () => {
                     >
                       {/* Top: imagem + info */}
                       <div className="flex gap-3 w-full">
-                        <ImageWithSkeleton
-                          src={getProductImage(produto.nome) || '/placeholder.svg'}
-                          alt={produto.nome}
-                        />
+                        {carouselImages[produto.nome] ? (
+                          <CarouselImage images={carouselImages[produto.nome]} />
+                        ) : (
+                          <ImageWithSkeleton
+                            src={getProductImage(produto.nome) || '/placeholder.svg'}
+                            alt={produto.nome}
+                          />
+                        )}
 
                         <div className="flex-1 flex flex-col min-w-0">
                           <h3 className="font-body font-bold text-foreground text-lg leading-tight">
