@@ -10,6 +10,9 @@ import guarana from '@/assets/guarana.jpg';
 import pudim from '@/assets/pudim.jpg';
 import brigadeiro from '@/assets/brigadeiro.jpg';
 import acai from '@/assets/acai.jpg';
+import redbullOriginal from '@/assets/redbull-original.jpg';
+import redbullTropical from '@/assets/redbull-tropical.jpg';
+import redbullAcai from '@/assets/redbull-acai.jpg';
 
 const imageMap: Record<string, string> = {
   'Coxinha de Frango': coxinha,
@@ -24,8 +27,18 @@ const imageMap: Record<string, string> = {
   'Pudim de Leite': pudim,
   'Brigadeiro Gourmet': brigadeiro,
   'Açaí na Tigela': acai,
+  'Red Bull Energy Drink': redbullOriginal,
 };
 
 export const getProductImage = (nome: string): string => {
   return imageMap[nome] || '';
+};
+
+// Carousel images for products with multiple flavors
+export const carouselImages: Record<string, { src: string; label: string }[]> = {
+  'Red Bull Energy Drink': [
+    { src: redbullOriginal, label: 'Original' },
+    { src: redbullTropical, label: 'Tropical' },
+    { src: redbullAcai, label: 'Coco & Açaí' },
+  ],
 };

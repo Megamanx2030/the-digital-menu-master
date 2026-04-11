@@ -2,9 +2,10 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
-import { getProductImage } from '@/lib/imageMap';
-import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone } from 'lucide-react';
+import { getProductImage, carouselImages } from '@/lib/imageMap';
+import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useEmblaCarousel from 'embla-carousel-react';
 
 interface Categoria {
   id: string;
@@ -27,6 +28,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   'Pratos Principais': Beef,
   'Bebidas': Wine,
   'Sobremesas': IceCreamCone,
+  'Bebidas Não Alcoólicas': Zap,
 };
 
 const PAGE_SIZE = 20;
@@ -50,6 +52,53 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
         onLoad={() => setLoaded(true)}
         onError={() => { setError(true); setLoaded(true); }}
       />
+    </div>
+  );
+};
+
+const CarouselImage = ({ images }: { images: { src: string; label: string }[] }) => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
+    emblaApi.on('select', onSelect);
+    return () => { emblaApi.off('select', onSelect); };
+  }, [emblaApi]);
+
+  return (
+    <div className="relative w-28 h-28 flex-shrink-0 overflow-hidden bg-muted" style={{ borderRadius: 12 }}>
+      <div ref={emblaRef} className="overflow-hidden w-full h-full">
+        <div className="flex h-full">
+          {images.map((img, i) => (
+            <div key={i} className="flex-[0_0_100%] min-w-0 h-full">
+              <img
+                src={img.src}
+                alt={img.label}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Swipe indicator */}
+      <div className="absolute bottom-1 left-0 right-0 flex items-center justify-center gap-1">
+        {images.map((_, i) => (
+          <div
+            key={i}
+            className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+              i === selectedIndex ? 'bg-gold-light w-3' : 'bg-white/50'
+            }`}
+          />
+        ))}
+      </div>
+      {/* Swipe hint icon */}
+      <div className="absolute top-1 right-1 bg-black/60 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
+        <ChevronLeft className="w-2.5 h-2.5 text-white/70" />
+        <ChevronRight className="w-2.5 h-2.5 text-white/70" />
+      </div>
     </div>
   );
 };
@@ -246,10 +295,14 @@ const MenuPage = () => {
                     >
                       {/* Top: imagem + info */}
                       <div className="flex gap-3 w-full">
-                        <ImageWithSkeleton
-                          src={getProductImage(produto.nome) || '/placeholder.svg'}
-                          alt={produto.nome}
-                        />
+                        {carouselImages[produto.nome] ? (
+                          <CarouselImage images={carouselImages[produto.nome]} />
+                        ) : (
+                          <ImageWithSkeleton
+                            src={getProductImage(produto.nome) || '/placeholder.svg'}
+                            alt={produto.nome}
+                          />
+                        )}
 
                         <div className="flex-1 flex flex-col min-w-0">
                           <h3 className="font-body font-bold text-foreground text-lg leading-tight">
