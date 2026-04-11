@@ -66,12 +66,11 @@ const QuantityControl = ({
   if (quantity === 0) {
     return (
       <motion.button
-        whileTap={{ scale: 0.93 }}
+        whileTap={{ scale: 0.85 }}
         onClick={onAdd}
-        className="flex items-center justify-center gap-1.5 bg-primary rounded-full px-4 py-1.5 transition-colors hover:bg-primary/90 z-10 relative"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary flex items-center justify-center shadow-md shadow-primary/30 transition-colors hover:bg-primary/90 z-10 relative"
       >
-        <Plus className="w-4 h-4 text-primary-foreground" />
-        <span className="text-xs font-body font-bold text-primary-foreground">Adicionar</span>
+        <Plus className="w-5 h-5 text-primary-foreground" />
       </motion.button>
     );
   }
@@ -80,22 +79,22 @@ const QuantityControl = ({
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="flex items-center gap-3 bg-secondary rounded-full p-1 z-10 relative"
+      className="flex items-center gap-6 bg-secondary rounded-full px-2 py-1.5 z-10 relative"
     >
       <button
         onClick={onRemove}
-        className="w-8 h-8 rounded-full bg-background shadow-sm flex items-center justify-center"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-background shadow-sm flex items-center justify-center"
       >
-        <Minus className="w-4 h-4 text-foreground" />
+        <Minus className="w-5 h-5 text-foreground" />
       </button>
-      <span className="text-sm font-body font-bold text-foreground min-w-[20px] text-center tabular-nums">
+      <span className="text-lg font-body font-bold text-foreground min-w-[24px] text-center tabular-nums">
         {quantity}
       </span>
       <button
         onClick={onAdd}
-        className="w-8 h-8 rounded-full bg-primary shadow-sm flex items-center justify-center"
+        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-primary shadow-sm flex items-center justify-center"
       >
-        <Plus className="w-4 h-4 text-primary-foreground" />
+        <Plus className="w-5 h-5 text-primary-foreground" />
       </button>
     </motion.div>
   );
@@ -187,7 +186,7 @@ const MenuPage = () => {
       </div>
 
       <div className="flex flex-1 overflow-hidden w-full">
-        {/* Sidebar Vertical (Ligeiramente mais fina para dar espaço aos cards) */}
+        {/* Sidebar */}
         <nav className="w-[90px] flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-3 gap-2.5 overflow-y-auto px-1.5">
           {categorias.map(cat => {
             const Icon = CATEGORY_ICONS[cat.nome] || UtensilsCrossed;
@@ -216,8 +215,8 @@ const MenuPage = () => {
           })}
         </nav>
 
-        {/* Área de Produtos com Rolagem Livre (Swipe nativo liberado em toda a div) */}
-        <div 
+        {/* Products */}
+        <div
           className="flex-1 overflow-y-auto overscroll-y-contain pb-28 px-2.5 pt-3 w-full"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
@@ -245,13 +244,11 @@ const MenuPage = () => {
                       className="bg-card border border-border overflow-hidden flex gap-2.5 p-2.5 w-full"
                       style={{ borderRadius: 16 }}
                     >
-                      {/* Quadrado da Imagem Fixo */}
                       <ImageWithSkeleton
                         src={getProductImage(produto.nome) || '/placeholder.svg'}
                         alt={produto.nome}
                       />
-                      
-                      {/* Textos e Botões esticados até a direita */}
+
                       <div className="flex-1 flex flex-col min-w-0 w-full justify-between">
                         <div className="w-full pr-1">
                           <h3 className="font-body font-bold text-foreground text-sm leading-tight line-clamp-2 w-full">
@@ -261,8 +258,7 @@ const MenuPage = () => {
                             {produto.descricao}
                           </p>
                         </div>
-                        
-                        {/* Preço na esquerda, Botão na extremidade direita */}
+
                         <div className="mt-2 flex items-center justify-between w-full">
                           <span className="text-gold-light font-bold font-body text-sm whitespace-nowrap">
                             R$ {produto.preco.toFixed(2).replace('.', ',')}
@@ -292,7 +288,7 @@ const MenuPage = () => {
         </div>
       </div>
 
-      {/* Carrinho flutuante */}
+      {/* Cart bar */}
       <AnimatePresence>
         {totalItems > 0 && (
           <motion.div
