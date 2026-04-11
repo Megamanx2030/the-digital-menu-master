@@ -83,8 +83,15 @@ const CartPage = () => {
               </button>
             </div>
 
-            {/* Quantity + subtotal */}
-            <div className="flex items-center justify-between mt-4 w-full bg-secondary rounded-full px-2 py-1.5">
+            {/* Subtotal */}
+            <div className="mt-4 flex justify-end">
+              <span className="font-body font-bold text-primary text-lg">
+                R$ {(item.preco * item.quantidade).toFixed(2).replace('.', ',')}
+              </span>
+            </div>
+
+            {/* Quantity */}
+            <div className="flex items-center justify-between mt-3 w-full bg-secondary rounded-full px-2 py-1.5">
               <button
                 onClick={() => updateQuantity(item.produto_id, item.quantidade - 1)}
                 className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-background shadow-sm flex items-center justify-center"
@@ -100,13 +107,6 @@ const CartPage = () => {
               >
                 <Plus className="w-5 h-5 text-primary-foreground" />
               </button>
-            </div>
-
-            {/* Subtotal */}
-            <div className="mt-3 flex justify-end">
-              <span className="font-body font-bold text-primary text-lg">
-                R$ {(item.preco * item.quantidade).toFixed(2).replace('.', ',')}
-              </span>
             </div>
 
             {/* Observações */}
