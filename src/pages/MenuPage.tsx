@@ -252,10 +252,10 @@ const MenuPage = () => {
                         />
 
                         <div className="flex-1 flex flex-col min-w-0">
-                          <h3 className="font-body font-bold text-foreground text-sm leading-tight">
+                          <h3 className="font-body font-bold text-foreground text-base leading-tight">
                             {produto.nome}
                           </h3>
-                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                          <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                             {produto.descricao}
                           </p>
                         </div>
