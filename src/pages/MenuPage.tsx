@@ -56,6 +56,52 @@ const ImageWithSkeleton = ({ src, alt }: { src: string; alt: string }) => {
   );
 };
 
+const CarouselImage = ({ images }: { images: { src: string; label: string }[] }) => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
+    emblaApi.on('select', onSelect);
+    return () => { emblaApi.off('select', onSelect); };
+  }, [emblaApi]);
+
+  return (
+    <div className="relative w-28 h-28 flex-shrink-0 overflow-hidden bg-muted" style={{ borderRadius: 12 }}>
+      <div ref={emblaRef} className="overflow-hidden w-full h-full">
+        <div className="flex h-full">
+          {images.map((img, i) => (
+            <div key={i} className="flex-[0_0_100%] min-w-0 h-full">
+              <img
+                src={img.src}
+                alt={img.label}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Swipe indicator */}
+      <div className="absolute bottom-1 left-0 right-0 flex items-center justify-center gap-1">
+        {images.map((_, i) => (
+          <div
+            key={i}
+            className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+              i === selectedIndex ? 'bg-gold-light w-3' : 'bg-white/50'
+            }`}
+          />
+        ))}
+      </div>
+      {/* Swipe hint icon */}
+      <div className="absolute top-1 right-1 bg-black/60 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
+        <ChevronLeft className="w-2.5 h-2.5 text-white/70" />
+        <ChevronRight className="w-2.5 h-2.5 text-white/70" />
+      </div>
+    </div>
+  );
+
 const QuantityControl = ({
   quantity,
   onAdd,
