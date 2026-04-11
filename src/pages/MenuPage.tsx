@@ -2,9 +2,10 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
-import { getProductImage } from '@/lib/imageMap';
-import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone } from 'lucide-react';
+import { getProductImage, carouselImages } from '@/lib/imageMap';
+import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useEmblaCarousel from 'embla-carousel-react';
 
 interface Categoria {
   id: string;
@@ -27,6 +28,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   'Pratos Principais': Beef,
   'Bebidas': Wine,
   'Sobremesas': IceCreamCone,
+  'Bebidas Não Alcoólicas': Zap,
 };
 
 const PAGE_SIZE = 20;
