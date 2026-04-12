@@ -10,6 +10,7 @@ import CartPage from "./pages/CartPage.tsx";
 import ConfirmationPage from "./pages/ConfirmationPage.tsx";
 import TrackingPage from "./pages/TrackingPage.tsx";
 import KDSPage from "./pages/KDSPage.tsx";
+import GarcomPage from "./pages/GarcomPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/mesa/:id/carrinho" element={<CartPage />} />
             <Route path="/mesa/:id/confirmacao" element={<ConfirmationPage />} />
             <Route path="/mesa/:id/acompanhar" element={<TrackingPage />} />
+            <Route path="/garcom" element={<GarcomPage />} />
             <Route path="/kds" element={<KDSPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
