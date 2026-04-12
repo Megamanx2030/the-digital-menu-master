@@ -98,6 +98,7 @@ export type Database = {
           numero: number
           qr_code_url: string | null
           restaurante_id: string
+          status: Database["public"]["Enums"]["status_mesa"]
         }
         Insert: {
           created_at?: string
@@ -105,6 +106,7 @@ export type Database = {
           numero: number
           qr_code_url?: string | null
           restaurante_id: string
+          status?: Database["public"]["Enums"]["status_mesa"]
         }
         Update: {
           created_at?: string
@@ -112,6 +114,7 @@ export type Database = {
           numero?: number
           qr_code_url?: string | null
           restaurante_id?: string
+          status?: Database["public"]["Enums"]["status_mesa"]
         }
         Relationships: [
           {
@@ -234,6 +237,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      status_mesa: "aberta" | "fechada"
       status_pedido: "novo" | "preparando" | "pronto" | "entregue"
     }
     CompositeTypes: {
@@ -362,6 +366,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      status_mesa: ["aberta", "fechada"],
       status_pedido: ["novo", "preparando", "pronto", "entregue"],
     },
   },
