@@ -28,6 +28,7 @@ const App = () => (
             <Route path="/mesa/:id/carrinho" element={<CartPage />} />
             <Route path="/mesa/:id/confirmacao" element={<ConfirmationPage />} />
             <Route path="/mesa/:id/acompanhar" element={<TrackingPage />} />
+            <Route path="/garcom" element={<GarcomPage />} />
             <Route path="/kds" element={<KDSPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
