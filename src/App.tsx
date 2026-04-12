@@ -10,6 +10,7 @@ import CartPage from "./pages/CartPage.tsx";
 import ConfirmationPage from "./pages/ConfirmationPage.tsx";
 import TrackingPage from "./pages/TrackingPage.tsx";
 import KDSPage from "./pages/KDSPage.tsx";
+import GarcomPage from "./pages/GarcomPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
