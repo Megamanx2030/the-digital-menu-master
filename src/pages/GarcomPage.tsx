@@ -443,17 +443,17 @@ const GarcomPage = () => {
                       </div>
                     ))}
 
-                    <div className="flex justify-between items-center pt-2 border-t border-border">
-                      <span className="font-body font-bold text-sm text-foreground">Total da Mesa</span>
-                      <span className="font-body font-bold text-lg text-primary">
+                    <div className="flex justify-between items-center pt-3 border-t border-border">
+                      <span className="font-body font-bold text-base text-foreground">Total da Mesa</span>
+                      <span className="font-body font-bold text-xl text-primary">
                         R$ {mesaTotal(selectedMesa.id).toFixed(2).replace('.', ',')}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">Nenhum pedido ativo</p>
+                  <div className="text-center py-10 text-muted-foreground">
+                    <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-base">Nenhum pedido ativo</p>
                   </div>
                 )}
               </ScrollArea>
