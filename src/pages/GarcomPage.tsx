@@ -503,20 +503,20 @@ const GarcomPage = () => {
           </DialogHeader>
 
           {/* Search + Category filter */}
-          <div className="px-4 space-y-2">
+          <div className="px-5 space-y-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 placeholder="Buscar produto..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="pl-9 bg-background"
+                className="pl-10 bg-background text-base h-12"
               />
             </div>
-            <div className="flex gap-1.5 overflow-x-auto pb-1">
+            <div className="flex gap-2 overflow-x-auto pb-1">
               <button
                 onClick={() => setSelectedCategory(null)}
-                className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-all ${!selectedCategory ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+                className={`text-sm px-4 py-2 rounded-full whitespace-nowrap transition-all font-medium ${!selectedCategory ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
               >
                 Todos
               </button>
@@ -524,7 +524,7 @@ const GarcomPage = () => {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-all ${selectedCategory === cat.id ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+                  className={`text-sm px-4 py-2 rounded-full whitespace-nowrap transition-all font-medium ${selectedCategory === cat.id ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
                 >
                   {cat.nome}
                 </button>
@@ -533,52 +533,66 @@ const GarcomPage = () => {
           </div>
 
           {/* Products list */}
-          <ScrollArea className="flex-1 px-4 min-h-0" style={{ maxHeight: '35vh' }}>
-            <div className="space-y-1.5 py-2">
+          <ScrollArea className="flex-1 px-5 min-h-0" style={{ maxHeight: '35vh' }}>
+            <div className="space-y-2 py-2">
               {filteredProdutos.map(produto => {
                 const inOrder = newOrderItems.find(i => i.produto.id === produto.id);
                 return (
-                  <motion.div
-                    key={produto.id}
-                    layout
-                    className="flex items-center gap-3 p-2 rounded-lg bg-background border border-border/50 hover:border-primary/30 transition-colors"
-                  >
-                    <img
-                      src={getProductImage(produto.nome) || '/placeholder.svg'}
-                      alt={produto.nome}
-                      className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{produto.nome}</p>
-                      <p className="text-xs text-primary font-bold">
-                        R$ {produto.preco.toFixed(2).replace('.', ',')}
-                      </p>
-                    </div>
-                    {inOrder ? (
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => updateNewOrderQty(produto.id, -1)}
-                          className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
-                        >
-                          <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="text-sm font-bold w-6 text-center">{inOrder.quantidade}</span>
-                        <button
-                          onClick={() => updateNewOrderQty(produto.id, 1)}
-                          className="w-8 h-8 rounded-full bg-primary flex items-center justify-center"
-                        >
-                          <Plus className="w-3.5 h-3.5 text-primary-foreground" />
-                        </button>
+                  <div key={produto.id} className="rounded-xl bg-background border border-border/50 hover:border-primary/30 transition-colors overflow-hidden">
+                    <div className="flex items-center gap-3 p-3">
+                      <img
+                        src={getProductImage(produto.nome) || '/placeholder.svg'}
+                        alt={produto.nome}
+                        className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base font-semibold text-foreground truncate">{produto.nome}</p>
+                        <p className="text-sm text-primary font-bold">
+                          R$ {produto.preco.toFixed(2).replace('.', ',')}
+                        </p>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => addToNewOrder(produto)}
-                        className="w-8 h-8 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center hover:bg-primary/20 transition-colors"
-                      >
-                        <Plus className="w-4 h-4 text-primary" />
-                      </button>
+                      {inOrder ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateNewOrderQty(produto.id, -1)}
+                            className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                          <span className="text-base font-bold w-7 text-center">{inOrder.quantidade}</span>
+                          <button
+                            onClick={() => updateNewOrderQty(produto.id, 1)}
+                            className="w-10 h-10 rounded-full bg-primary flex items-center justify-center"
+                          >
+                            <Plus className="w-4 h-4 text-primary-foreground" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => addToNewOrder(produto)}
+                          className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                        >
+                          <Plus className="w-5 h-5 text-primary" />
+                        </button>
+                      )}
+                    </div>
+                    {/* Per-item observation field */}
+                    {inOrder && (
+                      <div className="px-3 pb-3 pt-0">
+                        <Input
+                          placeholder="Obs: sem cebola, bem passado..."
+                          value={inOrder.observacoes}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setNewOrderItems(prev => prev.map(i =>
+                              i.produto.id === produto.id ? { ...i, observacoes: val } : i
+                            ));
+                          }}
+                          className="bg-card/50 text-sm h-9 border-border/30 placeholder:text-muted-foreground/50"
+                        />
+                      </div>
                     )}
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
