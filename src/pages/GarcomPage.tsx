@@ -600,37 +600,39 @@ const GarcomPage = () => {
 
           {/* Order summary */}
           {newOrderItems.length > 0 && (
-            <div className="border-t border-border px-4 pt-3 pb-2 space-y-2">
-              <div className="flex flex-wrap gap-1.5">
+            <div className="border-t border-border px-5 pt-4 pb-3 space-y-3">
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Resumo do pedido</p>
+              <div className="flex flex-wrap gap-2">
                 {newOrderItems.map(item => (
-                  <Badge key={item.produto.id} variant="secondary" className="gap-1 text-xs">
+                  <Badge key={item.produto.id} variant="secondary" className="gap-1.5 text-sm px-3 py-1.5">
                     {item.quantidade}x {item.produto.nome}
+                    {item.observacoes && <span className="text-amber-400">*</span>}
                     <button onClick={() => updateNewOrderQty(item.produto.id, -item.quantidade)}>
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </Badge>
                 ))}
               </div>
               <Textarea
-                placeholder="Observações do pedido..."
+                placeholder="Observações gerais do pedido (opcional)..."
                 value={orderObs}
                 onChange={e => setOrderObs(e.target.value)}
-                className="bg-background text-xs min-h-[60px]"
+                className="bg-background text-sm min-h-[50px]"
               />
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-foreground">
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-base font-bold text-foreground">
                   Total: R$ {newOrderTotal.toFixed(2).replace('.', ',')}
                 </span>
-                <Button onClick={submitNewOrder} className="gap-2">
-                  <Check className="w-4 h-4" /> Enviar Pedido
+                <Button onClick={submitNewOrder} className="gap-2 h-11 px-6 text-base">
+                  <Check className="w-5 h-5" /> Enviar Pedido
                 </Button>
               </div>
             </div>
           )}
 
           {newOrderItems.length === 0 && (
-            <div className="px-4 pb-4">
-              <Button variant="outline" className="w-full" onClick={() => setShowNewOrder(false)}>
+            <div className="px-5 pb-5">
+              <Button variant="outline" className="w-full h-11 text-base" onClick={() => setShowNewOrder(false)}>
                 Cancelar
               </Button>
             </div>
