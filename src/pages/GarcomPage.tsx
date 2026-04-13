@@ -407,10 +407,11 @@ const GarcomPage = () => {
                             </span>
                             <button
                               onClick={() => cancelPedido(pedido)}
-                              className="w-7 h-7 rounded-full bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center transition-colors"
-                              title="Cancelar pedido inteiro"
+                              className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
+                              title="Excluir pedido inteiro"
                             >
                               <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                              <span className="text-[10px] text-destructive font-medium">Excluir pedido</span>
                             </button>
                           </div>
                         </div>
