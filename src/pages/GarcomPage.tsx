@@ -458,33 +458,33 @@ const GarcomPage = () => {
                 )}
               </ScrollArea>
 
-              <DialogFooter className="flex-col gap-2 sm:flex-col">
+              <DialogFooter className="flex-col gap-3 sm:flex-col">
                 <Button
-                  className="w-full gap-2"
+                  className="w-full gap-2 h-12 text-base"
                   onClick={() => setShowNewOrder(true)}
                 >
-                  <Plus className="w-4 h-4" /> Novo Pedido
+                  <Plus className="w-5 h-5" /> Novo Pedido
                 </Button>
 
                 {mesaPedidos(selectedMesa.id).length > 0 && (
                   <Button
                     variant="outline"
-                    className="w-full gap-2"
+                    className="w-full gap-2 h-12 text-base"
                     onClick={() => setShowTransfer(true)}
                   >
-                    <ArrowRightLeft className="w-4 h-4" /> Transferir Mesa
+                    <ArrowRightLeft className="w-5 h-5" /> Transferir Mesa
                   </Button>
                 )}
 
                 <Button
                   variant={selectedMesa.status === 'aberta' ? 'destructive' : 'secondary'}
-                  className="w-full gap-2"
+                  className="w-full gap-2 h-12 text-base"
                   onClick={() => { toggleMesa(selectedMesa); setSelectedMesa(null); }}
                 >
                   {selectedMesa.status === 'aberta' ? (
-                    <><DoorClosed className="w-4 h-4" /> Fechar Mesa</>
+                    <><DoorClosed className="w-5 h-5" /> Fechar Mesa</>
                   ) : (
-                    <><DoorOpen className="w-4 h-4" /> Abrir Mesa</>
+                    <><DoorOpen className="w-5 h-5" /> Abrir Mesa</>
                   )}
                 </Button>
               </DialogFooter>
