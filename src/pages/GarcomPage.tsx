@@ -381,13 +381,13 @@ const GarcomPage = () => {
 
       {/* Mesa Detail Dialog */}
       <Dialog open={!!selectedMesa && !showNewOrder && !showTransfer} onOpenChange={() => setSelectedMesa(null)}>
-        <DialogContent className="max-w-md bg-card border-border max-h-[85vh] flex flex-col">
+        <DialogContent className="max-w-lg bg-card border-border max-h-[90vh] flex flex-col">
           {selectedMesa && (
             <>
               <DialogHeader>
-                <DialogTitle className="font-display flex items-center gap-2">
+                <DialogTitle className="font-display text-xl flex items-center gap-3">
                   Mesa {selectedMesa.numero}
-                  <Badge variant={selectedMesa.status === 'aberta' ? 'default' : 'secondary'} className="text-xs">
+                  <Badge variant={selectedMesa.status === 'aberta' ? 'default' : 'secondary'} className="text-sm px-3 py-1">
                     {selectedMesa.status === 'aberta' ? 'Aberta' : 'Fechada'}
                   </Badge>
                 </DialogTitle>
@@ -396,44 +396,49 @@ const GarcomPage = () => {
               <ScrollArea className="flex-1 -mx-6 px-6">
                 {/* Active orders */}
                 {mesaPedidos(selectedMesa.id).length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {mesaPedidos(selectedMesa.id).map(pedido => (
-                      <div key={pedido.id} className="rounded-lg border border-border bg-background p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-body font-bold text-sm">Pedido #{pedido.numero_pedido}</span>
+                      <div key={pedido.id} className="rounded-xl border border-border bg-background p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-body font-bold text-base">Pedido #{pedido.numero_pedido}</span>
                           <div className="flex items-center gap-2">
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${statusColor(pedido.status)}`}>
+                            <span className={`text-xs px-3 py-1 rounded-full border font-medium ${statusColor(pedido.status)}`}>
                               {statusLabel(pedido.status)}
                             </span>
                             <button
                               onClick={() => cancelPedido(pedido)}
-                              className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors"
                               title="Excluir pedido inteiro"
                             >
-                              <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                              <span className="text-[10px] text-destructive font-medium">Excluir pedido</span>
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                              <span className="text-xs text-destructive font-medium">Excluir pedido</span>
                             </button>
                           </div>
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           {(itensPedido[pedido.id] || []).map(item => (
-                            <div key={item.id} className="flex items-center justify-between text-xs text-muted-foreground group">
-                              <span>{item.quantidade}x {item.produtos?.nome}</span>
-                              <div className="flex items-center gap-2">
-                                <span>R$ {(item.quantidade * item.preco_unitario).toFixed(2).replace('.', ',')}</span>
+                            <div key={item.id} className="flex items-center justify-between text-sm text-muted-foreground group">
+                              <div className="flex flex-col">
+                                <span className="font-medium text-foreground">{item.quantidade}x {item.produtos?.nome}</span>
+                                {item.observacoes && (
+                                  <span className="text-xs text-amber-400/80 italic mt-0.5">💬 {item.observacoes}</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="font-semibold">R$ {(item.quantidade * item.preco_unitario).toFixed(2).replace('.', ',')}</span>
                                 <button
                                   onClick={() => removeItem(item.id, pedido.id)}
-                                  className="w-6 h-6 rounded-full bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center opacity-60 hover:opacity-100 transition-all"
+                                  className="w-7 h-7 rounded-full bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center opacity-60 hover:opacity-100 transition-all"
                                   title="Remover item"
                                 >
-                                  <Trash2 className="w-3 h-3 text-destructive" />
+                                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
                                 </button>
                               </div>
                             </div>
                           ))}
                         </div>
                         {pedido.observacoes && (
-                          <p className="text-[10px] text-muted-foreground mt-2 italic">💬 {pedido.observacoes}</p>
+                          <p className="text-xs text-muted-foreground mt-3 italic border-t border-border/50 pt-2">💬 {pedido.observacoes}</p>
                         )}
                       </div>
                     ))}
