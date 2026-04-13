@@ -9,8 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { getProductImage } from '@/lib/imageMap';
 
@@ -335,10 +333,9 @@ const GarcomPage = () => {
                 className={`
                   relative rounded-xl border-2 p-4 cursor-pointer transition-all
                   ${isOpen
-                    ? 'bg-primary/5 border-primary/30 shadow-lg shadow-primary/5'
+                    ? 'bg-primary/5 border-red-500/50 shadow-lg shadow-red-500/10 animate-pulse'
                     : 'bg-card border-border/50 opacity-70'}
-                  ${hasReady ? 'ring-2 ring-green-500/50 animate-pulse' : ''}
-                  ${hasNew ? 'ring-2 ring-blue-500/30' : ''}
+                  ${hasReady ? 'ring-2 ring-green-500/50' : ''}
                 `}
                 onClick={() => setSelectedMesa(mesa)}
               >
@@ -524,25 +521,26 @@ const GarcomPage = () => {
 
       {/* New Order Dialog */}
       <Dialog open={showNewOrder} onOpenChange={(open) => { if (!open) { setShowNewOrder(false); setNewOrderItems([]); setSearchTerm(''); setOrderObs(''); } }}>
-        <DialogContent className="max-w-lg bg-card border-border max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-5 pb-0">
+        <DialogContent className="max-w-lg bg-card border-border max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-5 pb-3 flex-shrink-0">
             <DialogTitle className="font-display text-xl">
               Novo Pedido — Mesa {selectedMesa?.numero}
             </DialogTitle>
           </DialogHeader>
 
           {/* Search + Category filter */}
-          <div className="px-5 space-y-3">
+          <div className="px-5 space-y-3 flex-shrink-0">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
                 placeholder="Buscar produto..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="pl-10 bg-background text-base h-12"
+                className="w-full pl-10 pr-4 h-12 bg-background text-base rounded-md border border-input text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary font-body"
               />
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
               <button
                 onClick={() => setSelectedCategory(null)}
                 className={`text-sm px-4 py-2 rounded-full whitespace-nowrap transition-all font-medium ${!selectedCategory ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
@@ -561,10 +559,10 @@ const GarcomPage = () => {
             </div>
           </div>
 
-          {/* Products list */}
+          {/* Products list - scrollable */}
           <div
-            className="flex-1 px-5 overflow-y-auto overscroll-y-contain"
-            style={{ WebkitOverflowScrolling: 'touch', maxHeight: '50vh' }}
+            className="flex-1 min-h-0 px-5 overflow-y-auto"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
             <div className="space-y-2 py-2">
               {filteredProdutos.map(produto => {
@@ -611,7 +609,8 @@ const GarcomPage = () => {
                     {/* Per-item observation field */}
                     {inOrder && (
                       <div className="px-3 pb-3 pt-0">
-                        <Input
+                        <input
+                          type="text"
                           placeholder="Obs: sem cebola, bem passado..."
                           value={inOrder.observacoes}
                           onChange={e => {
@@ -620,7 +619,7 @@ const GarcomPage = () => {
                               i.produto.id === produto.id ? { ...i, observacoes: val } : i
                             ));
                           }}
-                          className="bg-card/50 text-sm h-9 border-border/30 placeholder:text-muted-foreground/50"
+                          className="w-full bg-card/50 text-sm h-9 px-3 rounded-md border border-border/30 text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-1 focus:ring-primary font-body"
                         />
                       </div>
                     )}
@@ -645,11 +644,12 @@ const GarcomPage = () => {
                   </Badge>
                 ))}
               </div>
-              <Textarea
+              <textarea
                 placeholder="Observações gerais do pedido (opcional)..."
                 value={orderObs}
                 onChange={e => setOrderObs(e.target.value)}
-                className="bg-background text-sm min-h-[50px]"
+                rows={2}
+                className="w-full bg-background text-sm rounded-md border border-input px-3 py-2 text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary font-body resize-none"
               />
               <div className="flex items-center justify-between pt-1">
                 <span className="text-base font-bold text-foreground">
