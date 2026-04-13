@@ -496,8 +496,8 @@ const GarcomPage = () => {
       {/* New Order Dialog */}
       <Dialog open={showNewOrder} onOpenChange={(open) => { if (!open) { setShowNewOrder(false); setNewOrderItems([]); setSearchTerm(''); setOrderObs(''); } }}>
         <DialogContent className="max-w-lg bg-card border-border max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-4 pb-0">
-            <DialogTitle className="font-display">
+          <DialogHeader className="p-5 pb-0">
+            <DialogTitle className="font-display text-xl">
               Novo Pedido — Mesa {selectedMesa?.numero}
             </DialogTitle>
           </DialogHeader>
