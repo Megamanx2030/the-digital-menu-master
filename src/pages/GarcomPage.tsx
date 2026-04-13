@@ -331,10 +331,10 @@ const GarcomPage = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className={`
-                  relative rounded-xl border-2 p-4 cursor-pointer transition-all
+                  relative rounded-xl p-4 cursor-pointer transition-all
                   ${isOpen
-                    ? 'bg-primary/5 border-red-500/50 shadow-lg shadow-red-500/10 animate-pulse'
-                    : 'bg-card border-border/50 opacity-70'}
+                    ? 'bg-primary/5 border-[3px] border-green-500/60 shadow-lg shadow-green-500/15 animate-pulse'
+                    : 'border-2 bg-card border-border/50 opacity-70'}
                   ${hasReady ? 'ring-2 ring-green-500/50' : ''}
                 `}
                 onClick={() => setSelectedMesa(mesa)}
