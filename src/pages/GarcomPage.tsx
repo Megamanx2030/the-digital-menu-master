@@ -333,9 +333,8 @@ const GarcomPage = () => {
                 className={`
                   relative rounded-xl p-4 cursor-pointer transition-all
                   ${isOpen
-                    ? 'bg-primary/5 border-[3px] border-green-500/60 shadow-lg shadow-green-500/15 animate-pulse'
+                    ? 'bg-primary/5 border-[3px] border-green-500/60 shadow-lg shadow-green-500/15'
                     : 'border-2 bg-card border-border/50 opacity-70'}
-                  ${hasReady ? 'ring-2 ring-green-500/50' : ''}
                 `}
                 onClick={() => setSelectedMesa(mesa)}
               >
