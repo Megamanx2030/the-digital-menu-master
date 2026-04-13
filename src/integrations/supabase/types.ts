@@ -238,7 +238,7 @@ export type Database = {
     }
     Enums: {
       status_mesa: "aberta" | "fechada"
-      status_pedido: "novo" | "preparando" | "pronto" | "entregue"
+      status_pedido: "novo" | "preparando" | "pronto" | "entregue" | "cancelado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -367,7 +367,7 @@ export const Constants = {
   public: {
     Enums: {
       status_mesa: ["aberta", "fechada"],
-      status_pedido: ["novo", "preparando", "pronto", "entregue"],
+      status_pedido: ["novo", "preparando", "pronto", "entregue", "cancelado"],
     },
   },
 } as const
