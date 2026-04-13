@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -370,28 +369,28 @@ const GarcomPage = () => {
                       </p>
                       <div className="space-y-1 text-left">
                         {novos.length > 0 && (
-                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-500/10">
+                          <div className="flex flex-wrap items-start gap-1.5 px-2 py-1.5 rounded-md bg-blue-500/10">
                             <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
                             <span className="text-xs text-blue-400 font-semibold">Novo</span>
-                            <span className="text-xs text-blue-300/80 truncate">
+                            <span className="text-xs text-blue-300/80">
                               {novos.map(p => `#${p.numero_pedido}`).join(', ')}
                             </span>
                           </div>
                         )}
                         {preparandoList.length > 0 && (
-                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10">
+                          <div className="flex flex-wrap items-start gap-1.5 px-2 py-1.5 rounded-md bg-amber-500/10">
                             <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
                             <span className="text-xs text-amber-400 font-semibold">Preparando</span>
-                            <span className="text-xs text-amber-300/80 truncate">
+                            <span className="text-xs text-amber-300/80">
                               {preparandoList.map(p => `#${p.numero_pedido}`).join(', ')}
                             </span>
                           </div>
                         )}
                         {prontosList.length > 0 && (
-                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/10">
+                          <div className="flex flex-wrap items-start gap-1.5 px-2 py-1.5 rounded-md bg-green-500/10">
                             <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
                             <span className="text-xs text-green-400 font-semibold">Pronto</span>
-                            <span className="text-xs text-green-300/80 truncate">
+                            <span className="text-xs text-green-300/80">
                               {prontosList.map(p => `#${p.numero_pedido}`).join(', ')}
                             </span>
                           </div>
@@ -420,7 +419,10 @@ const GarcomPage = () => {
                 </DialogTitle>
               </DialogHeader>
 
-              <ScrollArea className="flex-1 -mx-6 px-6">
+              <div
+                className="flex-1 -mx-6 px-6 overflow-y-auto overscroll-y-contain"
+                style={{ WebkitOverflowScrolling: 'touch', maxHeight: '60vh' }}
+              >
                 {/* Active orders */}
                 {mesaPedidos(selectedMesa.id).length > 0 ? (
                   <div className="space-y-4">
@@ -483,7 +485,7 @@ const GarcomPage = () => {
                     <p className="text-base">Nenhum pedido ativo</p>
                   </div>
                 )}
-              </ScrollArea>
+              </div>
 
               <DialogFooter className="flex-col gap-3 sm:flex-col">
                 <Button
@@ -560,7 +562,10 @@ const GarcomPage = () => {
           </div>
 
           {/* Products list */}
-          <ScrollArea className="flex-1 px-5 min-h-0" style={{ maxHeight: '35vh' }}>
+          <div
+            className="flex-1 px-5 overflow-y-auto overscroll-y-contain"
+            style={{ WebkitOverflowScrolling: 'touch', maxHeight: '50vh' }}
+          >
             <div className="space-y-2 py-2">
               {filteredProdutos.map(produto => {
                 const inOrder = newOrderItems.find(i => i.produto.id === produto.id);
@@ -623,7 +628,7 @@ const GarcomPage = () => {
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
 
           {/* Order summary */}
           {newOrderItems.length > 0 && (
