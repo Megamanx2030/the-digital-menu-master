@@ -355,24 +355,51 @@ const GarcomPage = () => {
                   </p>
                 </div>
 
-                {hasOrders && (
-                  <div className="mt-3 space-y-1">
-                    <div className="flex items-center justify-center gap-1">
-                      <ShoppingBag className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">{pedidosMesa.length} pedido{pedidosMesa.length > 1 ? 's' : ''}</span>
+                {hasOrders && (() => {
+                  const novos = pedidosMesa.filter(p => p.status === 'novo');
+                  const preparandoList = pedidosMesa.filter(p => p.status === 'preparando');
+                  const prontosList = pedidosMesa.filter(p => p.status === 'pronto');
+                  return (
+                    <div className="mt-3 space-y-1.5">
+                      <div className="flex items-center justify-center gap-1">
+                        <ShoppingBag className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground font-medium">{pedidosMesa.length} pedido{pedidosMesa.length > 1 ? 's' : ''}</span>
+                      </div>
+                      <p className="text-center text-base font-bold text-primary">
+                        R$ {total.toFixed(2).replace('.', ',')}
+                      </p>
+                      <div className="space-y-1 text-left">
+                        {novos.length > 0 && (
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-500/10">
+                            <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+                            <span className="text-xs text-blue-400 font-semibold">Novo</span>
+                            <span className="text-xs text-blue-300/80 truncate">
+                              {novos.map(p => `#${p.numero_pedido}`).join(', ')}
+                            </span>
+                          </div>
+                        )}
+                        {preparandoList.length > 0 && (
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10">
+                            <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                            <span className="text-xs text-amber-400 font-semibold">Preparando</span>
+                            <span className="text-xs text-amber-300/80 truncate">
+                              {preparandoList.map(p => `#${p.numero_pedido}`).join(', ')}
+                            </span>
+                          </div>
+                        )}
+                        {prontosList.length > 0 && (
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/10">
+                            <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
+                            <span className="text-xs text-green-400 font-semibold">Pronto</span>
+                            <span className="text-xs text-green-300/80 truncate">
+                              {prontosList.map(p => `#${p.numero_pedido}`).join(', ')}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-center text-sm font-bold text-primary">
-                      R$ {total.toFixed(2).replace('.', ',')}
-                    </p>
-                    <div className="flex justify-center gap-1 flex-wrap">
-                      {pedidosMesa.map(p => (
-                        <span key={p.id} className={`text-[9px] px-1.5 py-0.5 rounded-full border ${statusColor(p.status)}`}>
-                          {statusLabel(p.status)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </motion.div>
             );
           })}
