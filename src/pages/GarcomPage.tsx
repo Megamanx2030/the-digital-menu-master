@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Plus, Minus, ArrowRightLeft, X, Check, ChefHat,
-  Clock, ShoppingBag, Coffee, Search, DoorOpen, DoorClosed, Trash2, Ban
+  Clock, ShoppingBag, Coffee, Search, DoorOpen, DoorClosed, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -250,14 +250,17 @@ const GarcomPage = () => {
   };
 
   const removeItem = async (itemId: string, pedidoId: string) => {
-    await supabase.from('itens_pedido').delete().eq('id', itemId);
+    const { error } = await supabase.from('itens_pedido').delete().eq('id', itemId);
+    if (error) {
+      toast.error('Erro ao remover item: ' + error.message);
+      return;
+    }
     // Check if pedido has remaining items
     const { data: remaining } = await supabase
       .from('itens_pedido')
       .select('id')
       .eq('pedido_id', pedidoId);
     if (!remaining || remaining.length === 0) {
-      // No items left, cancel the entire order
       await supabase.from('pedidos').update({ status: 'cancelado' }).eq('id', pedidoId);
       toast.success('Item removido — pedido cancelado (sem itens)');
     } else {
@@ -267,8 +270,16 @@ const GarcomPage = () => {
   };
 
   const cancelPedido = async (pedido: Pedido) => {
-    await supabase.from('itens_pedido').delete().eq('pedido_id', pedido.id);
-    await supabase.from('pedidos').update({ status: 'cancelado' }).eq('id', pedido.id);
+    const { error: errItems } = await supabase.from('itens_pedido').delete().eq('pedido_id', pedido.id);
+    if (errItems) {
+      toast.error('Erro ao remover itens: ' + errItems.message);
+      return;
+    }
+    const { error: errPedido } = await supabase.from('pedidos').update({ status: 'cancelado' }).eq('id', pedido.id);
+    if (errPedido) {
+      toast.error('Erro ao cancelar pedido: ' + errPedido.message);
+      return;
+    }
     toast.success(`Pedido #${pedido.numero_pedido} cancelado`);
     fetchPedidos();
   };
@@ -399,7 +410,7 @@ const GarcomPage = () => {
                               className="w-7 h-7 rounded-full bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center transition-colors"
                               title="Cancelar pedido inteiro"
                             >
-                              <Ban className="w-3.5 h-3.5 text-destructive" />
+                              <Trash2 className="w-3.5 h-3.5 text-destructive" />
                             </button>
                           </div>
                         </div>
