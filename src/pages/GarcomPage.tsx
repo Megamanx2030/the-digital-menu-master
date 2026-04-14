@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Plus, Minus, ArrowRightLeft, X, Check, ChefHat,
-  Clock, ShoppingBag, Coffee, Search, DoorOpen, DoorClosed, Trash2
+  Clock, ShoppingBag, Coffee, Search, DoorOpen, DoorClosed, Trash2, Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -312,6 +312,36 @@ const GarcomPage = () => {
           </div>
         </div>
       </header>
+
+      {/* 🔔 Alerta de pedidos prontos para retirada */}
+      {(() => {
+        const pedidosProntos = pedidos.filter(p => p.status === 'pronto');
+        if (pedidosProntos.length === 0) return null;
+        return (
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="sticky top-[61px] z-40 bg-kds-green/20 border-b-2 border-kds-green/50 px-4 py-3"
+          >
+            <div className="max-w-7xl mx-auto flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-kds-green/30 flex items-center justify-center animate-pulse">
+                <Bell className="w-5 h-5 text-kds-green" />
+              </div>
+              <div className="flex-1">
+                <p className="font-display font-bold text-kds-green text-base">
+                  🍽️ {pedidosProntos.length} pedido{pedidosProntos.length > 1 ? 's' : ''} pronto{pedidosProntos.length > 1 ? 's' : ''} para retirar!
+                </p>
+                <p className="text-sm text-kds-green/80 font-body">
+                  {pedidosProntos.map(p => {
+                    const mesaNum = mesas.find(m => m.id === p.mesa_id)?.numero || '?';
+                    return `#${p.numero_pedido} (Mesa ${mesaNum})`;
+                  }).join(' • ')}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        );
+      })()}
 
       <div className="max-w-7xl mx-auto p-4">
         {/* Mesas Grid */}
