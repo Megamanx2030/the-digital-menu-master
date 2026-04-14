@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -117,10 +117,37 @@ const GarcomPage = () => {
     if (cats) setCategorias(cats as Categoria[]);
   }, []);
 
-  /* ── som de alerta (estilo sino de cozinha) ── */
+  /* ── som de alerta (desbloqueado no primeiro toque) ── */
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const getAudioCtx = useCallback(() => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    return audioCtxRef.current;
+  }, []);
+
+  // Desbloqueia áudio no primeiro toque/clique do usuário
+  useEffect(() => {
+    const unlock = () => {
+      getAudioCtx();
+      document.removeEventListener('touchstart', unlock);
+      document.removeEventListener('click', unlock);
+    };
+    document.addEventListener('touchstart', unlock, { once: true });
+    document.addEventListener('click', unlock, { once: true });
+    return () => {
+      document.removeEventListener('touchstart', unlock);
+      document.removeEventListener('click', unlock);
+    };
+  }, [getAudioCtx]);
+
   const playNotificationSound = useCallback(() => {
     try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = getAudioCtx();
       const playTone = (freq: number, start: number, dur: number) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -134,14 +161,14 @@ const GarcomPage = () => {
         osc.stop(start + dur);
       };
       const now = ctx.currentTime;
-      // Ding-ding-ding (3 toques)
+      // Ding-ding-ding (3 toques ascendentes)
       playTone(880, now, 0.25);
       playTone(1100, now + 0.2, 0.25);
       playTone(1320, now + 0.4, 0.35);
     } catch (e) {
-      // Silently fail if audio not supported
+      // Silently fail
     }
-  }, []);
+  }, [getAudioCtx]);
 
   useEffect(() => {
     fetchMesas();
