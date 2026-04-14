@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChefHat, Clock, AlertTriangle, Flame, CheckCircle2 } from 'lucide-react';
 
@@ -70,10 +70,36 @@ const KDSPage = () => {
     fetchPedidos();
   }, [fetchPedidos]);
 
-  /* ── som de alerta (novo pedido na cozinha) ── */
+  /* ── som de alerta (desbloqueado no primeiro toque) ── */
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const getAudioCtx = useCallback(() => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    return audioCtxRef.current;
+  }, []);
+
+  useEffect(() => {
+    const unlock = () => {
+      getAudioCtx();
+      document.removeEventListener('touchstart', unlock);
+      document.removeEventListener('click', unlock);
+    };
+    document.addEventListener('touchstart', unlock, { once: true });
+    document.addEventListener('click', unlock, { once: true });
+    return () => {
+      document.removeEventListener('touchstart', unlock);
+      document.removeEventListener('click', unlock);
+    };
+  }, [getAudioCtx]);
+
   const playNewOrderSound = useCallback(() => {
     try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = getAudioCtx();
       const playTone = (freq: number, start: number, dur: number) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -94,7 +120,7 @@ const KDSPage = () => {
     } catch (e) {
       // Silently fail
     }
-  }, []);
+  }, [getAudioCtx]);
 
   useEffect(() => {
     const channel = supabase
