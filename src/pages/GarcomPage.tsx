@@ -121,6 +121,7 @@ const GarcomPage = () => {
   /* ── som de alerta (desbloqueado no primeiro toque) ── */
   const audioCtxRef = useRef<AudioContext | null>(null);
   const prevProntoIdsRef = useRef<Set<string>>(new Set());
+  const alertIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const getAudioCtx = useCallback(() => {
     if (!audioCtxRef.current) {
@@ -157,7 +158,7 @@ const GarcomPage = () => {
         gain.connect(ctx.destination);
         osc.frequency.value = freq;
         osc.type = 'sine';
-        gain.gain.setValueAtTime(0.4, start);
+        gain.gain.setValueAtTime(0.5, start);
         gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
         osc.start(start);
         osc.stop(start + dur);
@@ -171,24 +172,58 @@ const GarcomPage = () => {
     }
   }, [getAudioCtx]);
 
-  // Detecta novos pedidos prontos comparando estado anterior
+  // Detecta novos pedidos prontos — toca som repetido até garçom clicar
   useEffect(() => {
     const currentProntoIds = new Set(pedidos.filter(p => p.status === 'pronto').map(p => p.id));
     const prevIds = prevProntoIdsRef.current;
 
-    // Se tem IDs prontos que não existiam antes, toca o som
     let hasNew = false;
     currentProntoIds.forEach(id => {
       if (!prevIds.has(id)) hasNew = true;
     });
 
     if (hasNew && prevIds.size > 0) {
-      // prevIds.size > 0 evita tocar no carregamento inicial
       playNotificationSound();
     }
 
     prevProntoIdsRef.current = currentProntoIds;
   }, [pedidos, playNotificationSound]);
+
+  // Som repetido enquanto houver pedidos prontos NÃO confirmados
+  useEffect(() => {
+    const unacknowledgedProntos = pedidos.filter(
+      p => p.status === 'pronto' && !acknowledgedProntos.has(p.id)
+    );
+
+    if (unacknowledgedProntos.length > 0) {
+      if (!alertIntervalRef.current) {
+        alertIntervalRef.current = setInterval(() => playNotificationSound(), 5000);
+      }
+    } else {
+      if (alertIntervalRef.current) {
+        clearInterval(alertIntervalRef.current);
+        alertIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (alertIntervalRef.current) {
+        clearInterval(alertIntervalRef.current);
+        alertIntervalRef.current = null;
+      }
+    };
+  }, [pedidos, acknowledgedProntos, playNotificationSound]);
+
+  const acknowledgePronto = (pedidoId: string) => {
+    setAcknowledgedProntos(prev => new Set([...prev, pedidoId]));
+    toast.success('Pedido confirmado — retire na cozinha!');
+  };
+
+  const acknowledgeAllProntos = () => {
+    const prontoIds = pedidos.filter(p => p.status === 'pronto').map(p => p.id);
+    setAcknowledgedProntos(prev => new Set([...prev, ...prontoIds]));
+    toast.success('Todos os pedidos prontos confirmados!');
+  };
 
   useEffect(() => {
     fetchMesas();
