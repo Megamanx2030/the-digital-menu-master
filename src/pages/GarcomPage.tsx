@@ -426,27 +426,64 @@ const GarcomPage = () => {
       {/* 🔔 Alerta de pedidos prontos para retirada */}
       {(() => {
         const pedidosProntos = pedidos.filter(p => p.status === 'pronto');
+        const unacknowledged = pedidosProntos.filter(p => !acknowledgedProntos.has(p.id));
         if (pedidosProntos.length === 0) return null;
         return (
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="sticky top-[61px] z-40 bg-kds-green/20 border-b-2 border-kds-green/50 px-4 py-3"
+            className={`sticky top-[61px] z-40 border-b-2 px-4 py-3 ${
+              unacknowledged.length > 0
+                ? 'bg-kds-green/25 border-kds-green/60 animate-pulse'
+                : 'bg-kds-green/10 border-kds-green/30'
+            }`}
           >
-            <div className="max-w-7xl mx-auto flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-kds-green/30 flex items-center justify-center animate-pulse">
-                <Bell className="w-5 h-5 text-kds-green" />
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  unacknowledged.length > 0 ? 'bg-kds-green/40 animate-bounce' : 'bg-kds-green/20'
+                }`}>
+                  <Bell className="w-5 h-5 text-kds-green" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-display font-bold text-kds-green text-base">
+                    🍽️ {pedidosProntos.length} pedido{pedidosProntos.length > 1 ? 's' : ''} pronto{pedidosProntos.length > 1 ? 's' : ''} para retirar!
+                  </p>
+                  {unacknowledged.length > 0 && (
+                    <p className="text-xs text-kds-green/70 font-body mt-0.5">
+                      ⚠️ {unacknowledged.length} aguardando confirmação — toque para parar o alerta
+                    </p>
+                  )}
+                </div>
+                {unacknowledged.length > 0 && (
+                  <button
+                    onClick={acknowledgeAllProntos}
+                    className="bg-kds-green text-background font-bold px-4 py-2 rounded-xl text-sm active:scale-95 transition-all whitespace-nowrap"
+                  >
+                    ✅ Confirmar todos
+                  </button>
+                )}
               </div>
-              <div className="flex-1">
-                <p className="font-display font-bold text-kds-green text-base">
-                  🍽️ {pedidosProntos.length} pedido{pedidosProntos.length > 1 ? 's' : ''} pronto{pedidosProntos.length > 1 ? 's' : ''} para retirar!
-                </p>
-                <p className="text-sm text-kds-green/80 font-body">
-                  {pedidosProntos.map(p => {
-                    const mesaNum = mesas.find(m => m.id === p.mesa_id)?.numero || '?';
-                    return `#${p.numero_pedido} (Mesa ${mesaNum})`;
-                  }).join(' • ')}
-                </p>
+
+              {/* Lista de pedidos prontos com botão individual */}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {pedidosProntos.map(p => {
+                  const mesaNum = mesas.find(m => m.id === p.mesa_id)?.numero || '?';
+                  const isAcked = acknowledgedProntos.has(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => !isAcked && acknowledgePronto(p.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95 ${
+                        isAcked
+                          ? 'bg-kds-green/10 text-kds-green/50 line-through'
+                          : 'bg-kds-green/30 text-kds-green animate-pulse border border-kds-green/50'
+                      }`}
+                    >
+                      {isAcked ? '✓' : '🔔'} #{p.numero_pedido} (Mesa {mesaNum})
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </motion.div>
