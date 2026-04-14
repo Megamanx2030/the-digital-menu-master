@@ -65,6 +65,7 @@ const GarcomPage = () => {
   const [itensPedido, setItensPedido] = useState<Record<string, ItemPedido[]>>({});
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [acknowledgedProntos, setAcknowledgedProntos] = useState<Set<string>>(new Set());
 
   const [selectedMesa, setSelectedMesa] = useState<Mesa | null>(null);
   const [showNewOrder, setShowNewOrder] = useState(false);
@@ -120,6 +121,7 @@ const GarcomPage = () => {
   /* ── som de alerta (desbloqueado no primeiro toque) ── */
   const audioCtxRef = useRef<AudioContext | null>(null);
   const prevProntoIdsRef = useRef<Set<string>>(new Set());
+  const alertIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const getAudioCtx = useCallback(() => {
     if (!audioCtxRef.current) {
@@ -156,7 +158,7 @@ const GarcomPage = () => {
         gain.connect(ctx.destination);
         osc.frequency.value = freq;
         osc.type = 'sine';
-        gain.gain.setValueAtTime(0.4, start);
+        gain.gain.setValueAtTime(0.5, start);
         gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
         osc.start(start);
         osc.stop(start + dur);
@@ -170,24 +172,58 @@ const GarcomPage = () => {
     }
   }, [getAudioCtx]);
 
-  // Detecta novos pedidos prontos comparando estado anterior
+  // Detecta novos pedidos prontos — toca som repetido até garçom clicar
   useEffect(() => {
     const currentProntoIds = new Set(pedidos.filter(p => p.status === 'pronto').map(p => p.id));
     const prevIds = prevProntoIdsRef.current;
 
-    // Se tem IDs prontos que não existiam antes, toca o som
     let hasNew = false;
     currentProntoIds.forEach(id => {
       if (!prevIds.has(id)) hasNew = true;
     });
 
     if (hasNew && prevIds.size > 0) {
-      // prevIds.size > 0 evita tocar no carregamento inicial
       playNotificationSound();
     }
 
     prevProntoIdsRef.current = currentProntoIds;
   }, [pedidos, playNotificationSound]);
+
+  // Som repetido enquanto houver pedidos prontos NÃO confirmados
+  useEffect(() => {
+    const unacknowledgedProntos = pedidos.filter(
+      p => p.status === 'pronto' && !acknowledgedProntos.has(p.id)
+    );
+
+    if (unacknowledgedProntos.length > 0) {
+      if (!alertIntervalRef.current) {
+        alertIntervalRef.current = setInterval(() => playNotificationSound(), 5000);
+      }
+    } else {
+      if (alertIntervalRef.current) {
+        clearInterval(alertIntervalRef.current);
+        alertIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (alertIntervalRef.current) {
+        clearInterval(alertIntervalRef.current);
+        alertIntervalRef.current = null;
+      }
+    };
+  }, [pedidos, acknowledgedProntos, playNotificationSound]);
+
+  const acknowledgePronto = (pedidoId: string) => {
+    setAcknowledgedProntos(prev => new Set([...prev, pedidoId]));
+    toast.success('Pedido confirmado — retire na cozinha!');
+  };
+
+  const acknowledgeAllProntos = () => {
+    const prontoIds = pedidos.filter(p => p.status === 'pronto').map(p => p.id);
+    setAcknowledgedProntos(prev => new Set([...prev, ...prontoIds]));
+    toast.success('Todos os pedidos prontos confirmados!');
+  };
 
   useEffect(() => {
     fetchMesas();
@@ -390,27 +426,64 @@ const GarcomPage = () => {
       {/* 🔔 Alerta de pedidos prontos para retirada */}
       {(() => {
         const pedidosProntos = pedidos.filter(p => p.status === 'pronto');
+        const unacknowledged = pedidosProntos.filter(p => !acknowledgedProntos.has(p.id));
         if (pedidosProntos.length === 0) return null;
         return (
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="sticky top-[61px] z-40 bg-kds-green/20 border-b-2 border-kds-green/50 px-4 py-3"
+            className={`sticky top-[61px] z-40 border-b-2 px-4 py-3 ${
+              unacknowledged.length > 0
+                ? 'bg-kds-green/25 border-kds-green/60 animate-pulse'
+                : 'bg-kds-green/10 border-kds-green/30'
+            }`}
           >
-            <div className="max-w-7xl mx-auto flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-kds-green/30 flex items-center justify-center animate-pulse">
-                <Bell className="w-5 h-5 text-kds-green" />
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  unacknowledged.length > 0 ? 'bg-kds-green/40 animate-bounce' : 'bg-kds-green/20'
+                }`}>
+                  <Bell className="w-5 h-5 text-kds-green" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-display font-bold text-kds-green text-base">
+                    🍽️ {pedidosProntos.length} pedido{pedidosProntos.length > 1 ? 's' : ''} pronto{pedidosProntos.length > 1 ? 's' : ''} para retirar!
+                  </p>
+                  {unacknowledged.length > 0 && (
+                    <p className="text-xs text-kds-green/70 font-body mt-0.5">
+                      ⚠️ {unacknowledged.length} aguardando confirmação — toque para parar o alerta
+                    </p>
+                  )}
+                </div>
+                {unacknowledged.length > 0 && (
+                  <button
+                    onClick={acknowledgeAllProntos}
+                    className="bg-kds-green text-background font-bold px-4 py-2 rounded-xl text-sm active:scale-95 transition-all whitespace-nowrap"
+                  >
+                    ✅ Confirmar todos
+                  </button>
+                )}
               </div>
-              <div className="flex-1">
-                <p className="font-display font-bold text-kds-green text-base">
-                  🍽️ {pedidosProntos.length} pedido{pedidosProntos.length > 1 ? 's' : ''} pronto{pedidosProntos.length > 1 ? 's' : ''} para retirar!
-                </p>
-                <p className="text-sm text-kds-green/80 font-body">
-                  {pedidosProntos.map(p => {
-                    const mesaNum = mesas.find(m => m.id === p.mesa_id)?.numero || '?';
-                    return `#${p.numero_pedido} (Mesa ${mesaNum})`;
-                  }).join(' • ')}
-                </p>
+
+              {/* Lista de pedidos prontos com botão individual */}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {pedidosProntos.map(p => {
+                  const mesaNum = mesas.find(m => m.id === p.mesa_id)?.numero || '?';
+                  const isAcked = acknowledgedProntos.has(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => !isAcked && acknowledgePronto(p.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-all active:scale-95 ${
+                        isAcked
+                          ? 'bg-kds-green/10 text-kds-green/50 line-through'
+                          : 'bg-kds-green/30 text-kds-green animate-pulse border border-kds-green/50'
+                      }`}
+                    >
+                      {isAcked ? '✓' : '🔔'} #{p.numero_pedido} (Mesa {mesaNum})
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </motion.div>
