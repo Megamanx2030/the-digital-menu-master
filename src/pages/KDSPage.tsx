@@ -70,19 +70,51 @@ const KDSPage = () => {
     fetchPedidos();
   }, [fetchPedidos]);
 
+  /* ── som de alerta (novo pedido na cozinha) ── */
+  const playNewOrderSound = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const playTone = (freq: number, start: number, dur: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.5, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        osc.start(start);
+        osc.stop(start + dur);
+      };
+      const now = ctx.currentTime;
+      // Alerta forte: 3 beeps ascendentes
+      playTone(660, now, 0.2);
+      playTone(880, now + 0.2, 0.2);
+      playTone(1100, now + 0.4, 0.4);
+    } catch (e) {
+      // Silently fail
+    }
+  }, []);
+
   useEffect(() => {
     const channel = supabase
       .channel('kds-pedidos')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' },
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' },
         () => {
           fetchPedidos();
+          playNewOrderSound();
           setNewOrderFlash(true);
           setTimeout(() => setNewOrderFlash(false), 2000);
         }
       )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' },
+        () => {
+          fetchPedidos();
+        }
+      )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [fetchPedidos]);
+  }, [fetchPedidos, playNewOrderSound]);
 
   const getMesaNumero = (mesaId: string) => mesas.find(m => m.id === mesaId)?.numero || '?';
 
@@ -109,8 +141,8 @@ const KDSPage = () => {
   const preparando = pedidos.filter(p => p.status === 'preparando');
   const prontos = pedidos.filter(p => p.status === 'pronto');
 
-  /* ── Card do pedido (tamanho fixo, nunca encolhe) ── */
-  const OrderCard = ({
+  /* ── Card com botão de ação ── */
+  const ActionCard = ({
     pedido,
     borderColor,
     bgAccent,
@@ -129,7 +161,6 @@ const KDSPage = () => {
     const mins = getWaitTime(pedido.created_at);
     return (
       <div className={`bg-card border-2 ${borderColor} rounded-xl overflow-hidden flex-shrink-0`}>
-        {/* Header do card */}
         <div className={`px-4 py-2.5 flex items-center justify-between ${bgAccent}`}>
           <div className="flex items-baseline gap-2">
             <span className="font-display font-bold text-2xl text-foreground">#{pedido.numero_pedido}</span>
@@ -140,8 +171,6 @@ const KDSPage = () => {
             <span className={`font-body font-bold text-sm ${getTimeColor(mins)}`}>{formatWaitTime(mins)}</span>
           </div>
         </div>
-
-        {/* Itens */}
         <div className="px-4 py-3 space-y-1.5">
           {itens.map(item => (
             <div key={item.id}>
@@ -162,8 +191,6 @@ const KDSPage = () => {
             </div>
           ))}
         </div>
-
-        {/* Hora + Botão */}
         <div className="px-4 pb-3">
           <p className="text-xs text-muted-foreground font-body mb-2">
             Recebido às {new Date(pedido.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -174,6 +201,54 @@ const KDSPage = () => {
           >
             {buttonLabel}
           </button>
+        </div>
+      </div>
+    );
+  };
+
+  /* ── Card somente visual (sem botão) — coluna Prontos ── */
+  const ReadyCard = ({ pedido }: { pedido: Pedido }) => {
+    const itens = itensMap[pedido.id] || [];
+    const mins = getWaitTime(pedido.created_at);
+    return (
+      <div className="bg-card border-2 border-green-500/40 rounded-xl overflow-hidden flex-shrink-0 ring-1 ring-green-500/20">
+        <div className="px-4 py-2.5 flex items-center justify-between bg-green-500/10">
+          <div className="flex items-baseline gap-2">
+            <span className="font-display font-bold text-2xl text-foreground">#{pedido.numero_pedido}</span>
+            <span className="text-base text-muted-foreground font-body font-medium">Mesa {getMesaNumero(pedido.mesa_id)}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Clock className={`w-4 h-4 ${getTimeColor(mins)}`} />
+            <span className={`font-body font-bold text-sm ${getTimeColor(mins)}`}>{formatWaitTime(mins)}</span>
+          </div>
+        </div>
+        <div className="px-4 py-3 space-y-1.5">
+          {itens.map(item => (
+            <div key={item.id}>
+              <div className="flex items-center gap-2.5">
+                <span className="bg-green-500/20 text-green-400 font-bold text-base min-w-[36px] h-9 rounded-lg flex items-center justify-center shrink-0">
+                  {item.quantidade}x
+                </span>
+                <span className="font-body font-semibold text-foreground text-base leading-tight">
+                  {item.produtos?.nome}
+                </span>
+              </div>
+              {item.observacoes && (
+                <div className="flex items-start gap-1.5 ml-11 mt-0.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-kds-yellow mt-0.5 shrink-0" />
+                  <span className="text-kds-yellow text-sm font-medium">{item.observacoes}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="px-4 pb-3">
+          <p className="text-xs text-muted-foreground font-body">
+            Recebido às {new Date(pedido.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+          <p className="text-sm text-green-400 font-body font-bold mt-1.5 text-center uppercase tracking-wide">
+            ✅ Aguardando garçom retirar
+          </p>
         </div>
       </div>
     );
@@ -200,22 +275,19 @@ const KDSPage = () => {
         </div>
       </header>
 
-      {/* 3 colunas — cada uma rola independente */}
+      {/* 3 colunas */}
       <div className="flex-1 flex overflow-hidden min-h-0">
 
-        {/* ── NOVOS ── */}
+        {/* NOVOS */}
         <div className="flex-1 flex flex-col border-r border-border min-w-0">
           <div className="flex-shrink-0 px-3 py-2.5 bg-blue-500/10 border-b border-blue-500/20 flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
             <span className="text-base font-display font-bold text-blue-400 uppercase tracking-wide">Novos</span>
             <span className="bg-blue-500/20 text-blue-400 px-2.5 py-0.5 rounded-full text-sm font-bold ml-auto">{novos.length}</span>
           </div>
-          <div
-            className="flex-1 overflow-y-auto p-2.5 space-y-2.5"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
+          <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5" style={{ WebkitOverflowScrolling: 'touch' }}>
             {novos.map(pedido => (
-              <OrderCard
+              <ActionCard
                 key={pedido.id}
                 pedido={pedido}
                 borderColor="border-blue-500/40"
@@ -231,19 +303,16 @@ const KDSPage = () => {
           </div>
         </div>
 
-        {/* ── PREPARANDO ── */}
+        {/* PREPARANDO */}
         <div className="flex-1 flex flex-col border-r border-border min-w-0">
           <div className="flex-shrink-0 px-3 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-amber-500 animate-pulse" />
             <span className="text-base font-display font-bold text-amber-400 uppercase tracking-wide">Preparando</span>
             <span className="bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded-full text-sm font-bold ml-auto">{preparando.length}</span>
           </div>
-          <div
-            className="flex-1 overflow-y-auto p-2.5 space-y-2.5"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
+          <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5" style={{ WebkitOverflowScrolling: 'touch' }}>
             {preparando.map(pedido => (
-              <OrderCard
+              <ActionCard
                 key={pedido.id}
                 pedido={pedido}
                 borderColor="border-amber-500/40"
@@ -259,27 +328,16 @@ const KDSPage = () => {
           </div>
         </div>
 
-        {/* ── PRONTOS ── */}
+        {/* PRONTOS — sem botão, só visual */}
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex-shrink-0 px-3 py-2.5 bg-green-500/10 border-b border-green-500/20 flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
             <span className="text-base font-display font-bold text-green-400 uppercase tracking-wide">Prontos</span>
             <span className="bg-green-500/20 text-green-400 px-2.5 py-0.5 rounded-full text-sm font-bold ml-auto">{prontos.length}</span>
           </div>
-          <div
-            className="flex-1 overflow-y-auto p-2.5 space-y-2.5"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
+          <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5" style={{ WebkitOverflowScrolling: 'touch' }}>
             {prontos.map(pedido => (
-              <OrderCard
-                key={pedido.id}
-                pedido={pedido}
-                borderColor="border-green-500/40"
-                bgAccent="bg-green-500/5"
-                buttonLabel="🍽️ ENTREGUE"
-                buttonClass="bg-primary hover:bg-primary/80 text-primary-foreground"
-                onAction={() => updateStatus(pedido.id, 'entregue')}
-              />
+              <ReadyCard key={pedido.id} pedido={pedido} />
             ))}
             {prontos.length === 0 && (
               <p className="text-center text-muted-foreground/30 text-base py-12 font-body">Nenhum pronto</p>
