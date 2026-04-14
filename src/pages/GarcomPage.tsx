@@ -119,6 +119,7 @@ const GarcomPage = () => {
 
   /* ── som de alerta (desbloqueado no primeiro toque) ── */
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const prevProntoIdsRef = useRef<Set<string>>(new Set());
 
   const getAudioCtx = useCallback(() => {
     if (!audioCtxRef.current) {
@@ -161,7 +162,6 @@ const GarcomPage = () => {
         osc.stop(start + dur);
       };
       const now = ctx.currentTime;
-      // Ding-ding-ding (3 toques ascendentes)
       playTone(880, now, 0.25);
       playTone(1100, now + 0.2, 0.25);
       playTone(1320, now + 0.4, 0.35);
@@ -170,6 +170,25 @@ const GarcomPage = () => {
     }
   }, [getAudioCtx]);
 
+  // Detecta novos pedidos prontos comparando estado anterior
+  useEffect(() => {
+    const currentProntoIds = new Set(pedidos.filter(p => p.status === 'pronto').map(p => p.id));
+    const prevIds = prevProntoIdsRef.current;
+
+    // Se tem IDs prontos que não existiam antes, toca o som
+    let hasNew = false;
+    currentProntoIds.forEach(id => {
+      if (!prevIds.has(id)) hasNew = true;
+    });
+
+    if (hasNew && prevIds.size > 0) {
+      // prevIds.size > 0 evita tocar no carregamento inicial
+      playNotificationSound();
+    }
+
+    prevProntoIdsRef.current = currentProntoIds;
+  }, [pedidos, playNotificationSound]);
+
   useEffect(() => {
     fetchMesas();
     fetchPedidos();
@@ -177,13 +196,7 @@ const GarcomPage = () => {
 
     const ch1 = supabase
       .channel('garcom-pedidos')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, (payload: any) => {
-        if (payload.new?.status === 'pronto') {
-          playNotificationSound();
-        }
-        fetchPedidos();
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => {
         fetchPedidos();
       })
       .subscribe();
@@ -194,7 +207,7 @@ const GarcomPage = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(ch1); supabase.removeChannel(ch2); };
-  }, [fetchMesas, fetchPedidos, fetchProdutos, playNotificationSound]);
+  }, [fetchMesas, fetchPedidos, fetchProdutos]);
 
   /* ── helpers ── */
   const mesaPedidos = (mesaId: string) => pedidos.filter(p => p.mesa_id === mesaId);
