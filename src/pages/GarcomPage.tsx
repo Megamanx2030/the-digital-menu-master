@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Plus, Minus, ArrowRightLeft, X, Check, ChefHat,
-  Clock, ShoppingBag, Coffee, Search, DoorOpen, DoorClosed, Trash2
+  Clock, ShoppingBag, Coffee, Search, DoorOpen, DoorClosed, Trash2, Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
