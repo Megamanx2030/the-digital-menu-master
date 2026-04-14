@@ -29,6 +29,7 @@ const KDSPage = () => {
   const [itensMap, setItensMap] = useState<Record<string, ItemPedido[]>>({});
   const [newOrderFlash, setNewOrderFlash] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const alertIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30000);
@@ -122,7 +123,7 @@ const KDSPage = () => {
     }
   }, [getAudioCtx]);
 
-  // Detecta novos pedidos comparando IDs
+  // Detecta novos pedidos comparando IDs — toca som repetido até não ter novos
   useEffect(() => {
     const currentIds = new Set(pedidos.map(p => p.id));
     const prevIds = prevPedidoIdsRef.current;
@@ -135,11 +136,26 @@ const KDSPage = () => {
     if (hasNew && prevIds.size > 0) {
       playNewOrderSound();
       setNewOrderFlash(true);
-      setTimeout(() => setNewOrderFlash(false), 2000);
+      // Som repetido a cada 4s enquanto houver pedidos novos
+      if (alertIntervalRef.current) clearInterval(alertIntervalRef.current);
+      alertIntervalRef.current = setInterval(() => playNewOrderSound(), 4000);
     }
 
     prevPedidoIdsRef.current = currentIds;
   }, [pedidos, playNewOrderSound]);
+
+  // Para o som quando não houver mais pedidos novos
+  useEffect(() => {
+    const novosCount = pedidos.filter(p => p.status === 'novo').length;
+    if (novosCount === 0 && alertIntervalRef.current) {
+      clearInterval(alertIntervalRef.current);
+      alertIntervalRef.current = null;
+      setNewOrderFlash(false);
+    }
+    return () => {
+      if (alertIntervalRef.current) clearInterval(alertIntervalRef.current);
+    };
+  }, [pedidos]);
 
   useEffect(() => {
     const channel = supabase
@@ -168,7 +184,7 @@ const KDSPage = () => {
     return 'text-red-400';
   };
 
-  const updateStatus = async (pedidoId: string, newStatus: string) => {
+  const updateStatus = async (pedidoId: string, newStatus: 'novo' | 'preparando' | 'pronto' | 'entregue' | 'cancelado') => {
     await supabase.from('pedidos').update({ status: newStatus }).eq('id', pedidoId);
   };
 
