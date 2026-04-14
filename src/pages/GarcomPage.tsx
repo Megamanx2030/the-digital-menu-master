@@ -65,6 +65,7 @@ const GarcomPage = () => {
   const [itensPedido, setItensPedido] = useState<Record<string, ItemPedido[]>>({});
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [acknowledgedProntos, setAcknowledgedProntos] = useState<Set<string>>(new Set());
 
   const [selectedMesa, setSelectedMesa] = useState<Mesa | null>(null);
   const [showNewOrder, setShowNewOrder] = useState(false);
