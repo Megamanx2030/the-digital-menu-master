@@ -117,6 +117,32 @@ const GarcomPage = () => {
     if (cats) setCategorias(cats as Categoria[]);
   }, []);
 
+  /* ── som de alerta (estilo sino de cozinha) ── */
+  const playNotificationSound = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const playTone = (freq: number, start: number, dur: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.4, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        osc.start(start);
+        osc.stop(start + dur);
+      };
+      const now = ctx.currentTime;
+      // Ding-ding-ding (3 toques)
+      playTone(880, now, 0.25);
+      playTone(1100, now + 0.2, 0.25);
+      playTone(1320, now + 0.4, 0.35);
+    } catch (e) {
+      // Silently fail if audio not supported
+    }
+  }, []);
+
   useEffect(() => {
     fetchMesas();
     fetchPedidos();
@@ -124,7 +150,15 @@ const GarcomPage = () => {
 
     const ch1 = supabase
       .channel('garcom-pedidos')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => fetchPedidos())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, (payload: any) => {
+        if (payload.new?.status === 'pronto') {
+          playNotificationSound();
+        }
+        fetchPedidos();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, () => {
+        fetchPedidos();
+      })
       .subscribe();
 
     const ch2 = supabase
@@ -133,7 +167,7 @@ const GarcomPage = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(ch1); supabase.removeChannel(ch2); };
-  }, [fetchMesas, fetchPedidos, fetchProdutos]);
+  }, [fetchMesas, fetchPedidos, fetchProdutos, playNotificationSound]);
 
   /* ── helpers ── */
   const mesaPedidos = (mesaId: string) => pedidos.filter(p => p.mesa_id === mesaId);
