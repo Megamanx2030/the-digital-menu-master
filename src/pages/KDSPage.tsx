@@ -72,6 +72,7 @@ const KDSPage = () => {
 
   /* ── som de alerta (desbloqueado no primeiro toque) ── */
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const prevPedidoIdsRef = useRef<Set<string>>(new Set());
 
   const getAudioCtx = useCallback(() => {
     if (!audioCtxRef.current) {
@@ -113,7 +114,6 @@ const KDSPage = () => {
         osc.stop(start + dur);
       };
       const now = ctx.currentTime;
-      // Alerta forte: 3 beeps ascendentes
       playTone(660, now, 0.2);
       playTone(880, now + 0.2, 0.2);
       playTone(1100, now + 0.4, 0.4);
@@ -122,25 +122,34 @@ const KDSPage = () => {
     }
   }, [getAudioCtx]);
 
+  // Detecta novos pedidos comparando IDs
+  useEffect(() => {
+    const currentIds = new Set(pedidos.map(p => p.id));
+    const prevIds = prevPedidoIdsRef.current;
+
+    let hasNew = false;
+    currentIds.forEach(id => {
+      if (!prevIds.has(id)) hasNew = true;
+    });
+
+    if (hasNew && prevIds.size > 0) {
+      playNewOrderSound();
+      setNewOrderFlash(true);
+      setTimeout(() => setNewOrderFlash(false), 2000);
+    }
+
+    prevPedidoIdsRef.current = currentIds;
+  }, [pedidos, playNewOrderSound]);
+
   useEffect(() => {
     const channel = supabase
       .channel('kds-pedidos')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' },
-        () => {
-          fetchPedidos();
-          playNewOrderSound();
-          setNewOrderFlash(true);
-          setTimeout(() => setNewOrderFlash(false), 2000);
-        }
-      )
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' },
-        () => {
-          fetchPedidos();
-        }
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' },
+        () => { fetchPedidos(); }
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [fetchPedidos, playNewOrderSound]);
+  }, [fetchPedidos]);
 
   const getMesaNumero = (mesaId: string) => mesas.find(m => m.id === mesaId)?.numero || '?';
 
