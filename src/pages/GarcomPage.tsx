@@ -329,7 +329,7 @@ const GarcomPage = () => {
   const prontosCount = pedidosProntos.length;
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-background">
       {/* Header com abas */}
       <header className="sticky top-0 z-50 bg-card border-b border-border flex-shrink-0">
         <div className="px-4 py-3 flex items-center justify-between">
@@ -398,7 +398,7 @@ const GarcomPage = () => {
             </button>
           )}
 
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+      <div>
       <div className="max-w-7xl mx-auto p-4">
         {/* Mesas Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -492,10 +492,7 @@ const GarcomPage = () => {
 
       {/* ══════ ABA: PRONTOS ══════ */}
       {activeTab === 'prontos' && (
-        <div
-          className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain p-4"
-          style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
-        >
+        <div className="p-4">
           {pedidosProntos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
               <CheckCircle2 className="w-16 h-16 mb-3 opacity-20" />
@@ -537,20 +534,28 @@ const GarcomPage = () => {
                         </div>
                       </div>
 
-                      {/* Itens */}
+                      {/* Itens agrupados */}
                       <div className="px-4 py-3 space-y-2">
-                        {pedidosDaMesa.map(pedido => (
-                          (itensPedido[pedido.id] || []).map(item => (
-                            <div key={item.id} className="flex items-center gap-3">
+                        {(() => {
+                          // Agrupa itens iguais e soma quantidades
+                          const agrupados: Record<string, number> = {};
+                          pedidosDaMesa.forEach(pedido => {
+                            (itensPedido[pedido.id] || []).forEach(item => {
+                              const nome = item.produtos?.nome || 'Item';
+                              agrupados[nome] = (agrupados[nome] || 0) + item.quantidade;
+                            });
+                          });
+                          return Object.entries(agrupados).map(([nome, qty]) => (
+                            <div key={nome} className="flex items-center gap-3">
                               <span className="bg-green-500/20 text-green-400 font-bold text-base w-9 h-9 rounded-lg flex items-center justify-center shrink-0">
-                                {item.quantidade}x
+                                {qty}x
                               </span>
                               <span className="font-body text-base text-foreground font-medium">
-                                {item.produtos?.nome}
+                                {nome}
                               </span>
                             </div>
-                          ))
-                        ))}
+                          ));
+                        })()}
                       </div>
 
                       {/* Botão */}
