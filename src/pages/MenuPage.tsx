@@ -253,7 +253,7 @@ const MenuPage = () => {
       {/* Header */}
       <div className="bg-card border-b border-border px-3 py-4 flex items-center justify-between flex-shrink-0 z-20">
         <div className="flex items-center gap-3">
-          <button onClick={() => setDrawerOpen(true)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+          <button onClick={() => { setDrawerView('menu'); setDrawerOpen(true); }} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
             <Menu className="w-5 h-5 text-foreground" />
           </button>
           <div>
