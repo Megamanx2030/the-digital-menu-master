@@ -325,9 +325,9 @@ const GarcomPage = () => {
 
   /* ── render ── */
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border px-4 py-3">
+      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border px-4 py-3 flex-shrink-0">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
@@ -348,35 +348,40 @@ const GarcomPage = () => {
       </header>
 
       {/* 🔔 Alerta de pedidos prontos para retirada */}
-      {(() => {
-        const pedidosProntos = pedidos.filter(p => p.status === 'pronto');
-        if (pedidosProntos.length === 0) return null;
-        return (
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="sticky top-[61px] z-40 bg-kds-green/20 border-b-2 border-kds-green/50 px-4 py-3"
-          >
-            <div className="max-w-7xl mx-auto flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-kds-green/30 flex items-center justify-center animate-pulse">
-                <Bell className="w-5 h-5 text-kds-green" />
+      <AnimatePresence>
+        {(() => {
+          const pedidosProntos = pedidos.filter(p => p.status === 'pronto');
+          if (pedidosProntos.length === 0) return null;
+          return (
+            <motion.div
+              key="alert-prontos"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="bg-kds-green/20 border-b-2 border-kds-green/50 px-4 py-3 flex-shrink-0 overflow-hidden"
+            >
+              <div className="max-w-7xl mx-auto flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-kds-green/30 flex items-center justify-center animate-pulse flex-shrink-0">
+                  <Bell className="w-5 h-5 text-kds-green" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-display font-bold text-kds-green text-base">
+                    🍽️ {pedidosProntos.length} pedido{pedidosProntos.length > 1 ? 's' : ''} pronto{pedidosProntos.length > 1 ? 's' : ''} para retirar!
+                  </p>
+                  <p className="text-sm text-kds-green/80 font-body truncate">
+                    {pedidosProntos.map(p => {
+                      const mesaNum = mesas.find(m => m.id === p.mesa_id)?.numero || '?';
+                      return `#${p.numero_pedido} (Mesa ${mesaNum})`;
+                    }).join(' • ')}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="font-display font-bold text-kds-green text-base">
-                  🍽️ {pedidosProntos.length} pedido{pedidosProntos.length > 1 ? 's' : ''} pronto{pedidosProntos.length > 1 ? 's' : ''} para retirar!
-                </p>
-                <p className="text-sm text-kds-green/80 font-body">
-                  {pedidosProntos.map(p => {
-                    const mesaNum = mesas.find(m => m.id === p.mesa_id)?.numero || '?';
-                    return `#${p.numero_pedido} (Mesa ${mesaNum})`;
-                  }).join(' • ')}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        );
-      })()}
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
 
+      <div className="flex-1 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="max-w-7xl mx-auto p-4">
         {/* Mesas Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -463,6 +468,7 @@ const GarcomPage = () => {
             );
           })}
         </div>
+      </div>
       </div>
 
       {/* Mesa Detail Dialog */}
