@@ -149,6 +149,7 @@ const MenuPage = () => {
 
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerView, setDrawerView] = useState<'menu' | 'pedidos' | 'sobre'>('menu');
   const [pedidosEnviados, setPedidosEnviados] = useState<PedidoEnviado[]>([]);
   const [itensMap, setItensMap] = useState<Record<string, ItemPedidoEnviado[]>>({});
 
