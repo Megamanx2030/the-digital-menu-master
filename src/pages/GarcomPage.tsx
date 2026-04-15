@@ -500,83 +500,65 @@ const GarcomPage = () => {
               <p className="font-body text-sm mt-1 opacity-30">Aguardando a cozinha finalizar</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <p className="font-display font-bold text-green-400 text-lg px-1">
                 PEDIDOS PRONTOS — {pedidosProntos.length}
               </p>
 
-              {/* Cards agrupados por mesa */}
-              {(() => {
-                const porMesa: Record<string, Pedido[]> = {};
-                pedidosProntos.forEach(p => {
-                  const mesaNum = String(mesas.find(m => m.id === p.mesa_id)?.numero || '?');
-                  const key = `${p.mesa_id}__${mesaNum}`;
-                  if (!porMesa[key]) porMesa[key] = [];
-                  porMesa[key].push(p);
-                });
-
-                return Object.entries(porMesa).map(([key, pedidosDaMesa]) => {
-                  const mesaNum = key.split('__')[1];
+              {/* Cards por pedido, mais antigo primeiro */}
+              {[...pedidosProntos]
+                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                .map(pedido => {
+                  const mesaNum = mesas.find(m => m.id === pedido.mesa_id)?.numero || '?';
+                  const itens = itensPedido[pedido.id] || [];
                   return (
                     <div
-                      key={key}
+                      key={pedido.id}
                       className="bg-card border-2 border-green-500/40 rounded-xl overflow-hidden"
                     >
                       {/* Header */}
-                      <div className="bg-green-500/15 px-4 py-3 border-b border-green-500/20 flex items-center justify-between">
-                        <div>
-                          <p className="font-display font-bold text-xl text-foreground">
-                            MESA {mesaNum}
-                          </p>
-                          <p className="text-sm text-green-400 font-body font-semibold">
-                            {pedidosDaMesa.length} pedido{pedidosDaMesa.length > 1 ? 's' : ''} pronto{pedidosDaMesa.length > 1 ? 's' : ''}
-                          </p>
-                        </div>
+                      <div className="bg-green-500/15 px-4 py-2.5 border-b border-green-500/20 flex items-center justify-between">
+                        <p className="font-display font-bold text-lg text-foreground">
+                          MESA {mesaNum}
+                          <span className="text-muted-foreground font-body text-sm font-medium ml-2">
+                            Pedido #{pedido.numero_pedido}
+                          </span>
+                        </p>
+                        <span className="text-xs text-muted-foreground font-body">
+                          {new Date(pedido.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
 
-                      {/* Itens agrupados */}
-                      <div className="px-4 py-3 space-y-2">
-                        {(() => {
-                          // Agrupa itens iguais e soma quantidades
-                          const agrupados: Record<string, number> = {};
-                          pedidosDaMesa.forEach(pedido => {
-                            (itensPedido[pedido.id] || []).forEach(item => {
-                              const nome = item.produtos?.nome || 'Item';
-                              agrupados[nome] = (agrupados[nome] || 0) + item.quantidade;
-                            });
-                          });
-                          return Object.entries(agrupados).map(([nome, qty]) => (
-                            <div key={nome} className="flex items-center gap-3">
-                              <span className="bg-green-500/20 text-green-400 font-bold text-base w-9 h-9 rounded-lg flex items-center justify-center shrink-0">
-                                {qty}x
-                              </span>
-                              <span className="font-body text-base text-foreground font-medium">
-                                {nome}
-                              </span>
-                            </div>
-                          ));
-                        })()}
+                      {/* Itens do pedido */}
+                      <div className="px-4 py-2.5 space-y-1.5">
+                        {itens.map(item => (
+                          <div key={item.id} className="flex items-center gap-3">
+                            <span className="bg-green-500/20 text-green-400 font-bold text-base w-9 h-9 rounded-lg flex items-center justify-center shrink-0">
+                              {item.quantidade}x
+                            </span>
+                            <span className="font-body text-base text-foreground font-medium">
+                              {item.produtos?.nome}
+                            </span>
+                          </div>
+                        ))}
                       </div>
 
                       {/* Botão */}
-                      <div className="px-4 pb-4">
+                      <div className="px-4 pb-3">
                         <button
                           onClick={() => {
-                            pedidosDaMesa.forEach(p => {
-                              supabase.from('pedidos').update({ status: 'entregue' }).eq('id', p.id);
-                            });
-                            toast.success(`Mesa ${mesaNum} — entregue!`);
+                            supabase.from('pedidos').update({ status: 'entregue' }).eq('id', pedido.id);
+                            toast.success(`Pedido #${pedido.numero_pedido} — entregue!`);
                             setTimeout(fetchPedidos, 500);
                           }}
-                          className="w-full bg-green-600 hover:bg-green-500 text-white rounded-xl py-4 font-body font-bold text-lg active:scale-95 transition-all"
+                          className="w-full bg-green-600 hover:bg-green-500 text-white rounded-xl py-3.5 font-body font-bold text-base active:scale-95 transition-all"
                         >
                           ✅ PRONTO P/ ENTREGAR
                         </button>
                       </div>
                     </div>
                   );
-                });
-              })()}
+                })}
             </div>
           )}
         </div>
