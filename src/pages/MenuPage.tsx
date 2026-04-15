@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { getProductImage, carouselImages } from '@/lib/imageMap';
-import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, ChevronLeft, ChevronRight, Menu, X, Clock, XCircle } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, ChevronLeft, ChevronRight, Menu, X, Clock, XCircle, ChevronRight as ChevronRightIcon, Info, ShoppingBag, Instagram, Facebook, Globe, MapPin, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 
