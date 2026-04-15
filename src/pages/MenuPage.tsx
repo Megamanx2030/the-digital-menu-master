@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { getProductImage, carouselImages } from '@/lib/imageMap';
-import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, ChevronLeft, ChevronRight, Menu, X, Clock, XCircle } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, ChevronLeft, ChevronRight, Menu, X, Clock, XCircle, ChevronRight as ChevronRightIcon, Info, ShoppingBag, Instagram, Facebook, Globe, MapPin, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 
@@ -149,6 +149,7 @@ const MenuPage = () => {
 
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerView, setDrawerView] = useState<'menu' | 'pedidos' | 'sobre'>('menu');
   const [pedidosEnviados, setPedidosEnviados] = useState<PedidoEnviado[]>([]);
   const [itensMap, setItensMap] = useState<Record<string, ItemPedidoEnviado[]>>({});
 
@@ -252,7 +253,7 @@ const MenuPage = () => {
       {/* Header */}
       <div className="bg-card border-b border-border px-3 py-4 flex items-center justify-between flex-shrink-0 z-20">
         <div className="flex items-center gap-3">
-          <button onClick={() => setDrawerOpen(true)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+          <button onClick={() => { setDrawerView('menu'); setDrawerOpen(true); }} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
             <Menu className="w-5 h-5 text-foreground" />
           </button>
           <div>
@@ -280,70 +281,180 @@ const MenuPage = () => {
               className="fixed left-0 top-0 bottom-0 w-[85%] max-w-[360px] bg-card z-50 flex flex-col shadow-2xl"
             >
               <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-                <h2 className="text-xl font-display font-bold text-foreground">Meus Pedidos</h2>
+                <h2 className="text-xl font-display font-bold text-foreground">
+                  {drawerView === 'menu' ? 'Menu' : drawerView === 'pedidos' ? 'Meus Pedidos' : 'Sobre o Restaurante'}
+                </h2>
                 <button onClick={() => setDrawerOpen(false)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
                   <X className="w-5 h-5 text-foreground" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {pedidosEnviados.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <Clock className="w-12 h-12 text-muted-foreground/30 mb-3" />
-                    <p className="text-lg font-body font-semibold text-muted-foreground/50">Nenhum pedido enviado</p>
-                    <p className="text-sm text-muted-foreground/40 mt-1">Seus pedidos aparecerão aqui</p>
-                  </div>
-                ) : (
-                  pedidosEnviados.map(pedido => {
-                    const statusInfo = STATUS_LABELS[pedido.status] || STATUS_LABELS.novo;
-                    const itens = itensMap[pedido.id] || [];
-                    const canCancel = pedido.status === 'novo';
-                    const isCancelRequested = pedido.status === 'cancelamento_solicitado';
-                    return (
-                      <div key={pedido.id} className="bg-background border border-border rounded-xl overflow-hidden">
-                        <div className="px-4 py-3 flex items-center justify-between border-b border-border">
-                          <div>
-                            <span className="font-display font-bold text-xl text-foreground">#{pedido.numero_pedido}</span>
-                            <span className={`ml-3 text-xs font-body font-bold px-2.5 py-1 rounded-full ${statusInfo.color}`}>
-                              {statusInfo.label}
-                            </span>
-                          </div>
-                          <span className="text-xs text-muted-foreground font-body">
-                            {new Date(pedido.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                        <div className="px-4 py-3 space-y-2">
-                          {itens.map(item => (
-                            <div key={item.id} className="flex items-center gap-2">
-                              <span className="bg-primary/20 text-primary font-bold text-sm min-w-[28px] h-7 rounded-md flex items-center justify-center">
-                                {item.quantidade}x
-                              </span>
-                              <span className="font-body text-sm text-foreground">{item.produtos?.nome}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {canCancel && (
-                          <div className="px-4 pb-3">
-                            <button
-                              onClick={() => solicitarCancelamento(pedido.id)}
-                              className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-red-500/15 text-red-400 font-body font-bold text-sm active:scale-95 transition-all"
-                            >
-                              <XCircle className="w-4 h-4" />
-                              Solicitar Cancelamento
-                            </button>
-                          </div>
-                        )}
-                        {isCancelRequested && (
-                          <div className="px-4 pb-3">
-                            <p className="text-center text-sm font-body font-semibold text-red-400 animate-pulse">
-                              ⏳ Aguardando resposta da cozinha...
-                            </p>
-                          </div>
-                        )}
+
+              {drawerView === 'menu' && (
+                <div className="flex-1 p-4 space-y-3">
+                  <button
+                    onClick={() => { setDrawerView('pedidos'); fetchPedidosEnviados(); }}
+                    className="w-full flex items-center gap-4 p-4 rounded-xl bg-background border border-border active:scale-[0.98] transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                      <ShoppingBag className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-display font-bold text-foreground text-lg">Meus Pedidos</p>
+                      <p className="text-sm text-muted-foreground">Acompanhe seus pedidos enviados</p>
+                    </div>
+                    <ChevronRightIcon className="w-5 h-5 text-muted-foreground" />
+                  </button>
+
+                  <button
+                    onClick={() => setDrawerView('sobre')}
+                    className="w-full flex items-center gap-4 p-4 rounded-xl bg-background border border-border active:scale-[0.98] transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gold-light/20 flex items-center justify-center">
+                      <Info className="w-6 h-6 text-gold-light" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-display font-bold text-foreground text-lg">Sobre o Restaurante</p>
+                      <p className="text-sm text-muted-foreground">Horários, história e redes sociais</p>
+                    </div>
+                    <ChevronRightIcon className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                </div>
+              )}
+
+              {drawerView === 'pedidos' && (
+                <div className="flex-1 overflow-y-auto flex flex-col">
+                  <button onClick={() => setDrawerView('menu')} className="flex items-center gap-2 px-4 py-3 text-sm text-primary font-body font-semibold border-b border-border">
+                    <ChevronLeft className="w-4 h-4" /> Voltar
+                  </button>
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {pedidosEnviados.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <Clock className="w-12 h-12 text-muted-foreground/30 mb-3" />
+                        <p className="text-lg font-body font-semibold text-muted-foreground/50">Nenhum pedido enviado</p>
+                        <p className="text-sm text-muted-foreground/40 mt-1">Seus pedidos aparecerão aqui</p>
                       </div>
-                    );
-                  })
-                )}
-              </div>
+                    ) : (
+                      pedidosEnviados.map(pedido => {
+                        const statusInfo = STATUS_LABELS[pedido.status] || STATUS_LABELS.novo;
+                        const itens = itensMap[pedido.id] || [];
+                        const canCancel = pedido.status === 'novo';
+                        const isCancelRequested = pedido.status === 'cancelamento_solicitado';
+                        return (
+                          <div key={pedido.id} className="bg-background border border-border rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 flex items-center justify-between border-b border-border">
+                              <div>
+                                <span className="font-display font-bold text-xl text-foreground">#{pedido.numero_pedido}</span>
+                                <span className={`ml-3 text-xs font-body font-bold px-2.5 py-1 rounded-full ${statusInfo.color}`}>
+                                  {statusInfo.label}
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground font-body">
+                                {new Date(pedido.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <div className="px-4 py-3 space-y-2">
+                              {itens.map(item => (
+                                <div key={item.id} className="flex items-center gap-2">
+                                  <span className="bg-primary/20 text-primary font-bold text-sm min-w-[28px] h-7 rounded-md flex items-center justify-center">
+                                    {item.quantidade}x
+                                  </span>
+                                  <span className="font-body text-sm text-foreground">{item.produtos?.nome}</span>
+                                </div>
+                              ))}
+                            </div>
+                            {canCancel && (
+                              <div className="px-4 pb-3">
+                                <button
+                                  onClick={() => solicitarCancelamento(pedido.id)}
+                                  className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-red-500/15 text-red-400 font-body font-bold text-sm active:scale-95 transition-all"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                  Solicitar Cancelamento
+                                </button>
+                              </div>
+                            )}
+                            {isCancelRequested && (
+                              <div className="px-4 pb-3">
+                                <p className="text-center text-sm font-body font-semibold text-red-400 animate-pulse">
+                                  ⏳ Aguardando resposta da cozinha...
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {drawerView === 'sobre' && (
+                <div className="flex-1 overflow-y-auto flex flex-col">
+                  <button onClick={() => setDrawerView('menu')} className="flex items-center gap-2 px-4 py-3 text-sm text-primary font-body font-semibold border-b border-border">
+                    <ChevronLeft className="w-4 h-4" /> Voltar
+                  </button>
+                  <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                    {/* História */}
+                    <div>
+                      <h3 className="font-display font-bold text-foreground text-lg mb-2">Nossa História</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed font-body">
+                        O The Culinary Curator nasceu da paixão por reunir sabores autênticos e experiências
+                        gastronômicas memoráveis. Cada prato é cuidadosamente elaborado com ingredientes
+                        selecionados, trazendo o melhor da culinária contemporânea em um ambiente acolhedor
+                        e sofisticado.
+                      </p>
+                    </div>
+
+                    {/* Horários */}
+                    <div>
+                      <h3 className="font-display font-bold text-foreground text-lg mb-3">Horários de Funcionamento</h3>
+                      <div className="space-y-2">
+                        {[
+                          { day: 'Segunda a Quinta', hours: '11:30 – 15:00 / 18:00 – 23:00' },
+                          { day: 'Sexta e Sábado', hours: '11:30 – 00:00' },
+                          { day: 'Domingo', hours: '11:30 – 16:00' },
+                        ].map(item => (
+                          <div key={item.day} className="flex items-center justify-between py-2 px-3 rounded-lg bg-background border border-border">
+                            <span className="text-sm font-body font-semibold text-foreground">{item.day}</span>
+                            <span className="text-sm text-muted-foreground font-body">{item.hours}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Contato */}
+                    <div>
+                      <h3 className="font-display font-bold text-foreground text-lg mb-3">Contato</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3 py-2 px-3 rounded-lg bg-background border border-border">
+                          <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
+                          <span className="text-sm text-foreground font-body">Rua da Gastronomia, 123 — Centro</span>
+                        </div>
+                        <div className="flex items-center gap-3 py-2 px-3 rounded-lg bg-background border border-border">
+                          <Phone className="w-5 h-5 text-primary flex-shrink-0" />
+                          <span className="text-sm text-foreground font-body">(11) 99999-0000</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Redes Sociais */}
+                    <div>
+                      <h3 className="font-display font-bold text-foreground text-lg mb-3">Redes Sociais</h3>
+                      <div className="flex gap-3">
+                        <a href="#" className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center hover:bg-primary/10 transition-colors">
+                          <Instagram className="w-5 h-5 text-foreground" />
+                        </a>
+                        <a href="#" className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center hover:bg-primary/10 transition-colors">
+                          <Facebook className="w-5 h-5 text-foreground" />
+                        </a>
+                        <a href="#" className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center hover:bg-primary/10 transition-colors">
+                          <Globe className="w-5 h-5 text-foreground" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </>
         )}
