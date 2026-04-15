@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Plus, Minus, ArrowRightLeft, X, Check, ChefHat,
-  Clock, ShoppingBag, Coffee, Search, DoorOpen, DoorClosed, Trash2, Bell
+  Clock, ShoppingBag, Coffee, Search, DoorOpen, DoorClosed, Trash2, Bell, CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,6 +74,7 @@ const GarcomPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [orderObs, setOrderObs] = useState('');
+  const [activeTab, setActiveTab] = useState<'mesas' | 'prontos'>('mesas');
 
   /* ── fetch data ── */
   const fetchMesas = useCallback(async () => {
@@ -324,11 +325,14 @@ const GarcomPage = () => {
   const newOrderTotal = newOrderItems.reduce((s, i) => s + i.produto.preco * i.quantidade, 0);
 
   /* ── render ── */
+  const pedidosProntos = pedidos.filter(p => p.status === 'pronto');
+  const prontosCount = pedidosProntos.length;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border px-4 py-3 flex-shrink-0">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      {/* Header com abas */}
+      <header className="sticky top-0 z-50 bg-card border-b border-border flex-shrink-0">
+        <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
               <Users className="w-5 h-5 text-primary" />
@@ -338,112 +342,61 @@ const GarcomPage = () => {
               <p className="text-xs text-muted-foreground">The Culinary Curator</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              <Coffee className="w-3 h-3 mr-1" />
-              {mesas.filter(m => m.status === 'aberta').length} mesas abertas
-            </Badge>
-          </div>
+          <Badge variant="outline" className="text-xs">
+            <Coffee className="w-3 h-3 mr-1" />
+            {mesas.filter(m => m.status === 'aberta').length} abertas
+          </Badge>
+        </div>
+
+        {/* Abas */}
+        <div className="flex border-t border-border">
+          <button
+            onClick={() => setActiveTab('mesas')}
+            className={`flex-1 py-3 text-center font-body font-bold text-sm transition-all ${
+              activeTab === 'mesas'
+                ? 'text-primary border-b-2 border-primary bg-primary/5'
+                : 'text-muted-foreground'
+            }`}
+          >
+            🍽️ Mesas
+          </button>
+          <button
+            onClick={() => setActiveTab('prontos')}
+            className={`flex-1 py-3 text-center font-body font-bold text-sm transition-all relative ${
+              activeTab === 'prontos'
+                ? 'text-green-400 border-b-2 border-green-500 bg-green-500/5'
+                : 'text-muted-foreground'
+            }`}
+          >
+            ✅ Prontos
+            {prontosCount > 0 && (
+              <span className={`ml-1.5 inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                activeTab === 'prontos'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-green-500/20 text-green-400 animate-pulse'
+              }`}>
+                {prontosCount}
+              </span>
+            )}
+          </button>
         </div>
       </header>
 
-      {/* 🔔 PEDIDOS PRONTOS — cards por mesa igual KDS */}
-      <AnimatePresence>
-        {(() => {
-          const pedidosProntos = pedidos.filter(p => p.status === 'pronto');
-          if (pedidosProntos.length === 0) return null;
-
-          // Agrupa pedidos prontos por mesa
-          const porMesa: Record<string, Pedido[]> = {};
-          pedidosProntos.forEach(p => {
-            const mesaNum = String(mesas.find(m => m.id === p.mesa_id)?.numero || '?');
-            const key = `${p.mesa_id}__${mesaNum}`;
-            if (!porMesa[key]) porMesa[key] = [];
-            porMesa[key].push(p);
-          });
-
-          return (
-            <motion.div
-              key="alert-prontos"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="bg-green-500/10 border-b-2 border-green-500/40 flex-shrink-0 overflow-hidden"
+      {/* ══════ ABA: MESAS ══════ */}
+      {activeTab === 'mesas' && (
+        <>
+          {/* Mini alerta se tiver prontos */}
+          {prontosCount > 0 && (
+            <button
+              onClick={() => setActiveTab('prontos')}
+              className="flex items-center gap-2 bg-green-500/15 px-4 py-2.5 border-b border-green-500/30 active:bg-green-500/25 transition-colors"
             >
-              {/* Header do alerta */}
-              <div className="px-4 py-3 flex items-center gap-3 bg-green-500/15">
-                <div className="w-10 h-10 rounded-full bg-green-500/30 flex items-center justify-center animate-pulse flex-shrink-0">
-                  <Bell className="w-5 h-5 text-green-400" />
-                </div>
-                <p className="font-display font-bold text-green-400 text-lg">
-                  PEDIDOS PRONTOS
-                </p>
-                <span className="bg-green-500/25 text-green-400 px-2.5 py-0.5 rounded-full text-sm font-bold">
-                  {pedidosProntos.length}
-                </span>
-              </div>
-
-              {/* Cards por mesa — scroll horizontal no celular */}
-              <div
-                className="flex gap-3 px-4 py-3 overflow-x-auto"
-                style={{ WebkitOverflowScrolling: 'touch' }}
-              >
-                {Object.entries(porMesa).map(([key, pedidosDaMesa]) => {
-                  const mesaNum = key.split('__')[1];
-                  return (
-                    <div
-                      key={key}
-                      className="flex-shrink-0 w-[260px] bg-card border-2 border-green-500/40 rounded-xl overflow-hidden"
-                    >
-                      {/* Header do card da mesa */}
-                      <div className="bg-green-500/15 px-3 py-2.5 border-b border-green-500/20">
-                        <p className="font-display font-bold text-lg text-foreground">
-                          MESA {mesaNum}
-                        </p>
-                        <p className="text-xs text-green-400 font-body font-semibold">
-                          {pedidosDaMesa.length > 1 ? `${pedidosDaMesa.length} pedidos prontos` : 'Pedido pronto'}
-                        </p>
-                      </div>
-
-                      {/* Itens de todos os pedidos da mesa */}
-                      <div className="px-3 py-2.5 space-y-1.5">
-                        {pedidosDaMesa.map(pedido => (
-                          (itensPedido[pedido.id] || []).map(item => (
-                            <div key={item.id} className="flex items-center gap-2">
-                              <span className="bg-green-500/20 text-green-400 font-bold text-sm w-7 h-7 rounded flex items-center justify-center shrink-0">
-                                {item.quantidade}x
-                              </span>
-                              <span className="font-body text-sm text-foreground font-medium">
-                                {item.produtos?.nome}
-                              </span>
-                            </div>
-                          ))
-                        ))}
-                      </div>
-
-                      {/* Botão */}
-                      <div className="px-3 pb-3">
-                        <button
-                          onClick={() => {
-                            pedidosDaMesa.forEach(p => {
-                              supabase.from('pedidos').update({ status: 'entregue' }).eq('id', p.id);
-                            });
-                            toast.success(`Mesa ${mesaNum} — pedidos marcados como entregues`);
-                            setTimeout(fetchPedidos, 500);
-                          }}
-                          className="w-full bg-green-600 hover:bg-green-500 text-white rounded-lg py-3 font-body font-bold text-base active:scale-95 transition-all"
-                        >
-                          ✅ PRONTO P/ ENTREGAR
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          );
-        })()}
-      </AnimatePresence>
+              <Bell className="w-4 h-4 text-green-400 animate-pulse" />
+              <span className="text-sm text-green-400 font-body font-bold">
+                {prontosCount} pedido{prontosCount > 1 ? 's' : ''} pronto{prontosCount > 1 ? 's' : ''} — toque para ver
+              </span>
+            </button>
+          )}
 
       <div className="flex-1 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="max-w-7xl mx-auto p-4">
@@ -534,6 +487,92 @@ const GarcomPage = () => {
         </div>
       </div>
       </div>
+        </>
+      )}
+
+      {/* ══════ ABA: PRONTOS ══════ */}
+      {activeTab === 'prontos' && (
+        <div className="flex-1 overflow-y-auto overscroll-y-contain p-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {pedidosProntos.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+              <CheckCircle2 className="w-16 h-16 mb-3 opacity-20" />
+              <p className="font-display text-xl font-bold opacity-40">Nenhum pedido pronto</p>
+              <p className="font-body text-sm mt-1 opacity-30">Aguardando a cozinha finalizar</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="font-display font-bold text-green-400 text-lg px-1">
+                PEDIDOS PRONTOS — {pedidosProntos.length}
+              </p>
+
+              {/* Cards agrupados por mesa */}
+              {(() => {
+                const porMesa: Record<string, Pedido[]> = {};
+                pedidosProntos.forEach(p => {
+                  const mesaNum = String(mesas.find(m => m.id === p.mesa_id)?.numero || '?');
+                  const key = `${p.mesa_id}__${mesaNum}`;
+                  if (!porMesa[key]) porMesa[key] = [];
+                  porMesa[key].push(p);
+                });
+
+                return Object.entries(porMesa).map(([key, pedidosDaMesa]) => {
+                  const mesaNum = key.split('__')[1];
+                  return (
+                    <div
+                      key={key}
+                      className="bg-card border-2 border-green-500/40 rounded-xl overflow-hidden"
+                    >
+                      {/* Header */}
+                      <div className="bg-green-500/15 px-4 py-3 border-b border-green-500/20 flex items-center justify-between">
+                        <div>
+                          <p className="font-display font-bold text-xl text-foreground">
+                            MESA {mesaNum}
+                          </p>
+                          <p className="text-sm text-green-400 font-body font-semibold">
+                            {pedidosDaMesa.length} pedido{pedidosDaMesa.length > 1 ? 's' : ''} pronto{pedidosDaMesa.length > 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Itens */}
+                      <div className="px-4 py-3 space-y-2">
+                        {pedidosDaMesa.map(pedido => (
+                          (itensPedido[pedido.id] || []).map(item => (
+                            <div key={item.id} className="flex items-center gap-3">
+                              <span className="bg-green-500/20 text-green-400 font-bold text-base w-9 h-9 rounded-lg flex items-center justify-center shrink-0">
+                                {item.quantidade}x
+                              </span>
+                              <span className="font-body text-base text-foreground font-medium">
+                                {item.produtos?.nome}
+                              </span>
+                            </div>
+                          ))
+                        ))}
+                      </div>
+
+                      {/* Botão */}
+                      <div className="px-4 pb-4">
+                        <button
+                          onClick={() => {
+                            pedidosDaMesa.forEach(p => {
+                              supabase.from('pedidos').update({ status: 'entregue' }).eq('id', p.id);
+                            });
+                            toast.success(`Mesa ${mesaNum} — entregue!`);
+                            setTimeout(fetchPedidos, 500);
+                          }}
+                          className="w-full bg-green-600 hover:bg-green-500 text-white rounded-xl py-4 font-body font-bold text-lg active:scale-95 transition-all"
+                        >
+                          ✅ PRONTO P/ ENTREGAR
+                        </button>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Mesa Detail Dialog */}
       <Dialog open={!!selectedMesa && !showNewOrder && !showTransfer} onOpenChange={() => setSelectedMesa(null)}>
