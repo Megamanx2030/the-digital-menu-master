@@ -321,6 +321,18 @@ const MenuPage = () => {
         </div>
       </div>
 
+      {/* Offline / cached-data banner */}
+      {(!isOnline || usingCache) && (
+        <div className="flex-shrink-0 bg-amber-500/15 border-b border-amber-500/30 px-3 py-2 flex items-center gap-2">
+          <WifiOff className="w-4 h-4 text-amber-400 shrink-0" />
+          <p className="text-xs font-body text-amber-400 leading-tight">
+            {!isOnline
+              ? 'Você está offline. Mostrando o cardápio salvo. Pedidos serão enviados quando voltar a conexão.'
+              : 'Conexão instável. Exibindo cardápio salvo enquanto tentamos atualizar.'}
+          </p>
+        </div>
+      )}
+
       {/* Drawer overlay */}
       <AnimatePresence>
         {drawerOpen && (
