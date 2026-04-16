@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { getProductImage, carouselImages } from '@/lib/imageMap';
-import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, ChevronLeft, ChevronRight, Menu, X, Clock, XCircle, ChevronRight as ChevronRightIcon, Info, ShoppingBag, Instagram, Facebook, Globe, MapPin, Phone } from 'lucide-react';
+import { saveCache, readCache, readCacheStale, CACHE_KEYS } from '@/lib/menuCache';
+import { ShoppingCart, Plus, Minus, UtensilsCrossed, Beef, Wine, IceCreamCone, ChevronLeft, ChevronRight, Menu, X, Clock, XCircle, ChevronRight as ChevronRightIcon, Info, ShoppingBag, Instagram, Facebook, Globe, MapPin, Phone, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 
@@ -153,24 +154,78 @@ const MenuPage = () => {
   const [pedidosEnviados, setPedidosEnviados] = useState<PedidoEnviado[]>([]);
   const [itensMap, setItensMap] = useState<Record<string, ItemPedidoEnviado[]>>({});
 
+  // Offline state
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [usingCache, setUsingCache] = useState<boolean>(false);
+
+  useEffect(() => {
+    const onOnline = () => setIsOnline(true);
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, []);
+
   const getItemQuantity = useCallback(
     (produtoId: string) => items.find(i => i.produto_id === produtoId)?.quantidade ?? 0,
     [items],
   );
 
   useEffect(() => {
+    if (!id) return;
+
+    // 1) Hydrate instantly from cache (if available) — works even fully offline.
+    const cachedMesa = readCache<{ id: string; numero: number }>(CACHE_KEYS.mesa(id))
+      ?? readCacheStale<{ id: string; numero: number }>(CACHE_KEYS.mesa(id));
+    const cachedCats = readCache<Categoria[]>(CACHE_KEYS.categorias)
+      ?? readCacheStale<Categoria[]>(CACHE_KEYS.categorias);
+    const cachedProds = readCache<Produto[]>(CACHE_KEYS.produtos)
+      ?? readCacheStale<Produto[]>(CACHE_KEYS.produtos);
+
+    if (cachedMesa) { setMesaNumero(cachedMesa.numero); setMesaId(cachedMesa.id); }
+    if (cachedCats && cachedCats.length) {
+      setCategorias(cachedCats);
+      setActiveCategory(prev => prev || cachedCats[0]?.id || '');
+    }
+    if (cachedProds && cachedProds.length) setProdutos(cachedProds);
+    if (cachedMesa || cachedCats || cachedProds) setUsingCache(true);
+
+    // 2) Revalidate in background. If network fails, cached data stays.
+    let cancelled = false;
     const fetchData = async () => {
-      const { data: mesa } = await supabase.from('mesas').select('*').eq('numero', Number(id)).single();
-      if (mesa) {
-        setMesaNumero(mesa.numero);
-        setMesaId(mesa.id);
+      try {
+        const [mesaRes, catsRes, prodsRes] = await Promise.all([
+          supabase.from('mesas').select('*').eq('numero', Number(id)).single(),
+          supabase.from('categorias').select('*').order('ordem'),
+          supabase.from('produtos').select('*').eq('disponivel', true),
+        ]);
+        if (cancelled) return;
+
+        if (mesaRes.data) {
+          setMesaNumero(mesaRes.data.numero);
+          setMesaId(mesaRes.data.id);
+          saveCache(CACHE_KEYS.mesa(id), { id: mesaRes.data.id, numero: mesaRes.data.numero });
+        }
+        if (catsRes.data) {
+          setCategorias(catsRes.data);
+          setActiveCategory(prev => prev || catsRes.data[0]?.id || '');
+          saveCache(CACHE_KEYS.categorias, catsRes.data);
+        }
+        if (prodsRes.data) {
+          setProdutos(prodsRes.data);
+          saveCache(CACHE_KEYS.produtos, prodsRes.data);
+        }
+        setUsingCache(false);
+      } catch {
+        // Network error — keep cached data, flag as offline-ish.
+        setUsingCache(true);
       }
-      const { data: cats } = await supabase.from('categorias').select('*').order('ordem');
-      if (cats) { setCategorias(cats); setActiveCategory(cats[0]?.id || ''); }
-      const { data: prods } = await supabase.from('produtos').select('*').eq('disponivel', true);
-      if (prods) setProdutos(prods);
     };
     fetchData();
+    return () => { cancelled = true; };
   }, [id]);
 
   // Fetch sent orders for this table
