@@ -11,8 +11,8 @@ type SendState =
   | { kind: 'failed' }
   | { kind: 'mesa_fechada' };
 
-const RETRY_DELAYS_MS = [5000, 10000, 20000, 40000];
-const MAX_TOTAL_MS = 120_000; // 2 minutos
+const RETRY_DELAYS_MS = [5000, 10000, 15000, 20000];
+const MAX_TOTAL_MS = 60_000; // 60 segundos
 const PER_ATTEMPT_TIMEOUT_MS = 10_000; // timeout por tentativa
 
 const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
