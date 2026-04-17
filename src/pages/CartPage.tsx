@@ -12,6 +12,22 @@ type SendState =
 
 const RETRY_DELAYS_MS = [5000, 10000, 20000, 40000];
 const MAX_TOTAL_MS = 120_000; // 2 minutos
+const PER_ATTEMPT_TIMEOUT_MS = 10_000; // timeout por tentativa
+
+const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
+  new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('Timeout de tentativa')), ms);
+    promise.then(
+      v => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      e => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
 
 const CartPage = () => {
   const { id } = useParams<{ id: string }>();
