@@ -157,6 +157,39 @@ const MenuPage = () => {
   // Offline state
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [usingCache, setUsingCache] = useState<boolean>(false);
+  const [showOfflineBanner, setShowOfflineBanner] = useState<boolean>(false);
+  const offlineBannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Banner só aparece se revalidação demorar mais de 3s (evita flash)
+  useEffect(() => {
+    if (offlineBannerTimeoutRef.current) {
+      clearTimeout(offlineBannerTimeoutRef.current);
+      offlineBannerTimeoutRef.current = null;
+    }
+
+    if (!isOnline) {
+      // Offline de verdade: mostra imediatamente
+      setShowOfflineBanner(true);
+      return;
+    }
+
+    if (usingCache) {
+      // Revalidação em andamento: espera 3s antes de mostrar
+      offlineBannerTimeoutRef.current = setTimeout(() => {
+        setShowOfflineBanner(true);
+      }, 3000);
+    } else {
+      // Revalidação terminou com sucesso
+      setShowOfflineBanner(false);
+    }
+
+    return () => {
+      if (offlineBannerTimeoutRef.current) {
+        clearTimeout(offlineBannerTimeoutRef.current);
+        offlineBannerTimeoutRef.current = null;
+      }
+    };
+  }, [isOnline, usingCache]);
 
   useEffect(() => {
     const onOnline = () => setIsOnline(true);
@@ -322,7 +355,7 @@ const MenuPage = () => {
       </div>
 
       {/* Offline / cached-data banner */}
-      {(!isOnline || usingCache) && (
+      {showOfflineBanner && (
         <div className="flex-shrink-0 bg-amber-500/15 border-b border-amber-500/30 px-3 py-2 flex items-center gap-2">
           <WifiOff className="w-4 h-4 text-amber-400 shrink-0" />
           <p className="text-xs font-body text-amber-400 leading-tight">
