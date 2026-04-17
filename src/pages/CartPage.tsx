@@ -8,7 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 type SendState =
   | { kind: 'idle' }
   | { kind: 'sending'; attempt: number; nextRetryInMs?: number }
-  | { kind: 'failed' };
+  | { kind: 'failed' }
+  | { kind: 'mesa_fechada' };
 
 const RETRY_DELAYS_MS = [5000, 10000, 20000, 40000];
 const MAX_TOTAL_MS = 120_000; // 2 minutos
@@ -113,7 +114,15 @@ const CartPage = () => {
           state: { pedidoId: pedido.id, numeroPedido: pedido.numero_pedido },
         });
         return;
-      } catch (err) {
+      } catch (err: any) {
+        // Erro de mesa fechada — não adianta tentar de novo, avisa e para imediatamente
+        const errMsg = String(err?.message || err || '').toLowerCase();
+        if (errMsg.includes('mesa fechada') || errMsg.includes('fechada')) {
+          try { localStorage.removeItem('tcc:pending-order'); } catch {}
+          setSendState({ kind: 'mesa_fechada' });
+          return;
+        }
+
         const elapsed = Date.now() - startedAt;
         const delay = RETRY_DELAYS_MS[Math.min(attempt - 1, RETRY_DELAYS_MS.length - 1)];
 
@@ -144,6 +153,7 @@ const CartPage = () => {
 
   const isSending = sendState.kind === 'sending';
   const isFailed = sendState.kind === 'failed';
+  const isMesaFechada = sendState.kind === 'mesa_fechada';
 
   return (
     <div className="min-h-screen bg-background w-full max-w-full lg:max-w-[430px] mx-auto pb-40">
@@ -268,6 +278,25 @@ const CartPage = () => {
                 </div>
               </motion.div>
             )}
+            {isMesaFechada && (
+              <motion.div
+                key="mesa-fechada"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/40 rounded-xl px-4 py-3"
+              >
+                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-body font-semibold text-foreground text-sm">
+                    Mesa ainda não foi aberta
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Chame um atendente para abrir sua mesa antes de fazer o pedido.
+                  </p>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           <div className="flex items-center justify-between">
@@ -276,7 +305,7 @@ const CartPage = () => {
               R$ {totalPrice.toFixed(2).replace('.', ',')}
             </span>
           </div>
-          {!isFailed && (
+          {!isFailed && !isMesaFechada && (
             <motion.button
               whileTap={!isSending ? { scale: 0.97 } : undefined}
               onClick={handleConfirm}
