@@ -12,6 +12,22 @@ type SendState =
 
 const RETRY_DELAYS_MS = [5000, 10000, 20000, 40000];
 const MAX_TOTAL_MS = 120_000; // 2 minutos
+const PER_ATTEMPT_TIMEOUT_MS = 10_000; // timeout por tentativa
+
+const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
+  new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('Timeout de tentativa')), ms);
+    promise.then(
+      v => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      e => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
 
 const CartPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -74,17 +90,24 @@ const CartPage = () => {
 
     while (true) {
       if (cancelledRef.current) return;
+      const elapsedBefore = Date.now() - startedAt;
+      if (elapsedBefore >= MAX_TOTAL_MS) {
+        try { localStorage.removeItem('tcc:pending-order'); } catch {}
+        setSendState({ kind: 'failed' });
+        return;
+      }
       attempt += 1;
       setSendState({ kind: 'sending', attempt });
 
+      // tempo restante do orçamento global
+      const remaining = MAX_TOTAL_MS - elapsedBefore;
+      const attemptTimeout = Math.min(PER_ATTEMPT_TIMEOUT_MS, remaining);
+
       try {
-        const pedido = await trySendOnce();
+        const pedido = await withTimeout(trySendOnce(), attemptTimeout);
         if (cancelledRef.current) return;
         clearCart();
-        // Limpa rascunhos locais, se houver
-        try {
-          localStorage.removeItem('tcc:pending-order');
-        } catch {}
+        try { localStorage.removeItem('tcc:pending-order'); } catch {}
         setSendState({ kind: 'idle' });
         navigate(`/mesa/${id}/confirmacao`, {
           state: { pedidoId: pedido.id, numeroPedido: pedido.numero_pedido },
@@ -94,11 +117,9 @@ const CartPage = () => {
         const elapsed = Date.now() - startedAt;
         const delay = RETRY_DELAYS_MS[Math.min(attempt - 1, RETRY_DELAYS_MS.length - 1)];
 
-        // Se a próxima tentativa já estouraria os 2 minutos, desiste.
-        if (elapsed + delay >= MAX_TOTAL_MS) {
-          try {
-            localStorage.removeItem('tcc:pending-order');
-          } catch {}
+        // Se já passou do orçamento OU a próxima tentativa não cabe, desiste.
+        if (elapsed >= MAX_TOTAL_MS || elapsed + delay >= MAX_TOTAL_MS) {
+          try { localStorage.removeItem('tcc:pending-order'); } catch {}
           setSendState({ kind: 'failed' });
           return;
         }
