@@ -90,17 +90,24 @@ const CartPage = () => {
 
     while (true) {
       if (cancelledRef.current) return;
+      const elapsedBefore = Date.now() - startedAt;
+      if (elapsedBefore >= MAX_TOTAL_MS) {
+        try { localStorage.removeItem('tcc:pending-order'); } catch {}
+        setSendState({ kind: 'failed' });
+        return;
+      }
       attempt += 1;
       setSendState({ kind: 'sending', attempt });
 
+      // tempo restante do orçamento global
+      const remaining = MAX_TOTAL_MS - elapsedBefore;
+      const attemptTimeout = Math.min(PER_ATTEMPT_TIMEOUT_MS, remaining);
+
       try {
-        const pedido = await trySendOnce();
+        const pedido = await withTimeout(trySendOnce(), attemptTimeout);
         if (cancelledRef.current) return;
         clearCart();
-        // Limpa rascunhos locais, se houver
-        try {
-          localStorage.removeItem('tcc:pending-order');
-        } catch {}
+        try { localStorage.removeItem('tcc:pending-order'); } catch {}
         setSendState({ kind: 'idle' });
         navigate(`/mesa/${id}/confirmacao`, {
           state: { pedidoId: pedido.id, numeroPedido: pedido.numero_pedido },
@@ -110,11 +117,9 @@ const CartPage = () => {
         const elapsed = Date.now() - startedAt;
         const delay = RETRY_DELAYS_MS[Math.min(attempt - 1, RETRY_DELAYS_MS.length - 1)];
 
-        // Se a próxima tentativa já estouraria os 2 minutos, desiste.
-        if (elapsed + delay >= MAX_TOTAL_MS) {
-          try {
-            localStorage.removeItem('tcc:pending-order');
-          } catch {}
+        // Se já passou do orçamento OU a próxima tentativa não cabe, desiste.
+        if (elapsed >= MAX_TOTAL_MS || elapsed + delay >= MAX_TOTAL_MS) {
+          try { localStorage.removeItem('tcc:pending-order'); } catch {}
           setSendState({ kind: 'failed' });
           return;
         }
