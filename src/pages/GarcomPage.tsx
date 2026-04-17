@@ -252,9 +252,10 @@ const GarcomPage = () => {
 
   const submitNewOrder = async () => {
     if (!selectedMesa || newOrderItems.length === 0) return;
-    // Open mesa if closed
+    // Validação: mesa deve estar aberta (Camada 1 de segurança)
     if (selectedMesa.status === 'fechada') {
-      await supabase.from('mesas').update({ status: 'aberta' }).eq('id', selectedMesa.id);
+      toast.error('Abra a mesa antes de criar um pedido');
+      return;
     }
     const { data: pedido, error } = await supabase
       .from('pedidos')
@@ -420,7 +421,7 @@ const GarcomPage = () => {
                   relative rounded-xl p-4 cursor-pointer transition-all
                   ${isOpen
                     ? 'bg-primary/5 border-[3px] border-green-500/60 shadow-lg shadow-green-500/15'
-                    : 'border-2 bg-card border-border/50 opacity-70'}
+                    : 'border-2 border-dashed bg-card border-border/40 opacity-80'}
                 `}
                 onClick={() => setSelectedMesa(mesa)}
               >
@@ -428,13 +429,29 @@ const GarcomPage = () => {
                 <div className={`absolute top-2 right-2 w-3 h-3 rounded-full ${isOpen ? 'bg-green-500' : 'bg-muted-foreground/30'}`} />
 
                 <div className="text-center">
-                  <span className="font-display text-2xl font-bold text-foreground">
+                  <span className={`font-display text-2xl font-bold ${isOpen ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {mesa.numero}
                   </span>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wider">
-                    {isOpen ? 'Aberta' : 'Fechada'}
+                  <p className={`text-[10px] mt-0.5 uppercase tracking-wider font-semibold ${
+                    isOpen ? 'text-green-400' : 'text-muted-foreground/70'
+                  }`}>
+                    {isOpen ? '● Aberta' : '○ Fechada'}
                   </p>
                 </div>
+
+                {/* Botão rápido ABRIR em mesa fechada */}
+                {!isOpen && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMesa(mesa);
+                    }}
+                    className="mt-3 w-full bg-green-600/90 hover:bg-green-500 text-white rounded-lg py-2 font-body font-bold text-sm active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <DoorOpen className="w-4 h-4" />
+                    ABRIR
+                  </button>
+                )}
 
                 {hasOrders && (() => {
                   const novos = pedidosMesa.filter(p => p.status === 'novo');
