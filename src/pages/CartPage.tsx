@@ -276,23 +276,23 @@ const CartPage = () => {
               R$ {totalPrice.toFixed(2).replace('.', ',')}
             </span>
           </div>
-          <motion.button
-            whileTap={!isSending && !isFailed ? { scale: 0.97 } : undefined}
-            onClick={isFailed ? () => setSendState({ kind: 'idle' }) : handleConfirm}
-            disabled={isSending}
-            className="w-full bg-primary text-primary-foreground rounded-xl py-4 font-body font-bold text-lg shadow-lg shadow-primary/30 disabled:opacity-70 flex items-center justify-center gap-2"
-          >
-            {isSending ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Enviando...
-              </>
-            ) : isFailed ? (
-              'Tentar novamente'
-            ) : (
-              'Confirmar Pedido'
-            )}
-          </motion.button>
+          {!isFailed && (
+            <motion.button
+              whileTap={!isSending ? { scale: 0.97 } : undefined}
+              onClick={handleConfirm}
+              disabled={isSending}
+              className="w-full bg-primary text-primary-foreground rounded-xl py-4 font-body font-bold text-lg shadow-lg shadow-primary/30 disabled:opacity-70 flex items-center justify-center gap-2"
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                'Confirmar Pedido'
+              )}
+            </motion.button>
+          )}
         </div>
       </div>
     </div>
